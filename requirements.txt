@@ -1,0 +1,5 @@
+pyodbc
+pandas
+customtkinter
+python-dotenv
+sqlalchemy
