@@ -6,12 +6,14 @@ def inspect_db():
     
     tables = {
         "CRM (HubSpot)": "Tabela_Leads_Raiz_v2",
-        "ERP (TOTVS)": "Z_PAINELMATRICULA"
+        "ERP (TOTVS)": "Z_PAINELMATRICULA",
+        "Matriculas": "Tabela_f_matriculas",
+        "Matriz curricular": "Tabela_Matrizcurricular"
     }
     
     for sistema, tabela in tables.items():
         print(f"\n{'='*60}")
-        print(f"🔍 INSPEÇÃO: {sistema} | Tabela: {tabela}")
+        print(f"INSPEÇÃO: {sistema} | Tabela: {tabela}")
         print(f"{'='*60}")
         
         try:
@@ -19,14 +21,14 @@ def inspect_db():
             query = f"SELECT TOP 1 * FROM {tabela}"
             df = pd.read_sql(query, engine)
             
-            print(f"\n📋 COLUNAS ENCONTRADAS ({len(df.columns)}):")
+            print(f"\nCOLUNAS ENCONTRADAS ({len(df.columns)}):")
             for col in df.columns:
                 val = df[col].iloc[0]
                 # Mostra o nome da coluna e um exemplo do dado que tem nela
                 print(f" - {col:<30} | Exemplo: {val}")
                 
         except Exception as e:
-            print(f"❌ Erro ao acessar {tabela}: {e}")
+            print(f"Erro ao acessar {tabela}: {e}")
 
 if __name__ == "__main__":
     inspect_db()
