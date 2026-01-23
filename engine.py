@@ -36,6 +36,19 @@ class FunnelEngine:
     def _normalize_key(self, text):
         return self.remove_accents(text.upper().strip())
 
+    def extract_marca(self, unidade):
+        """
+        Retorna a marca (chave do normalization.json) a partir do nome oficial da unidade
+        """
+        unidade_norm = self._normalize_key(unidade)
+
+        for marca, data in self.unit_map.items():
+            canonical = self._normalize_key(data["nome_oficial"])
+            if unidade_norm == canonical:
+                return marca
+
+        return "OUTROS"
+    
     def _build_alias_map(self):
         alias_map = {}
         self.inactive_units = [] # Nova lista para controle
@@ -65,14 +78,17 @@ class FunnelEngine:
         return self.alias_to_canonical.get(key, name)
 
     def get_crm_data(self):
-        print("[CRM] Extraindo e processando funil...")
+        print("[CRM] Extraindo e processando funil de vendas (2026)...")
 
+        # 1. Filtro fixo para 2026 (ou via config se preferir manter dinâmico)
+        data_inicio = '2025-06-01' 
+        
         query = f"""
-        SELECT
-            unidade,
+        SELECT 
+            unidade, 
             hs_pipeline_stage
         FROM Tabela_Leads_Raiz_v2
-        WHERE hs_createdate >= '{self.config["DATA_CORTE_INICIO"]}'
+        WHERE hs_createdate >= '{data_inicio}'
         """
 
         try:
@@ -80,23 +96,31 @@ class FunnelEngine:
             if df.empty:
                 return pd.DataFrame()
 
+            # Normalização do nome da marca para bater com o ERP depois
             df["unidade"] = df["unidade"].apply(self.normaliza_nome_marca)
-
-            # Mapeia prioridade do estágio
+            
             df["stage_rank"] = df["hs_pipeline_stage"].map(self.stage_order).fillna(0)
 
-            # Classificação acumulada do funil
-            df["metric_leads"] = 1
-            df["metric_contatos"] = (df["stage_rank"] >= 2).astype(int)
-            df["metric_agendamentos"] = (df["stage_rank"] >= 3).astype(int)
-            df["metric_visitas"] = (df["stage_rank"] >= 4).astype(int)
+            # Definição das Métricas Acumuladas
+            # Nível 1: Leads (Todo mundo que entrou no banco é Lead, mesmo que perdido)
+            df["Leads"] = 1 
+            
+            # Nível 2: Contato Produtivo (Quem avançou para rank 2 ou mais)
+            df["Contato Produtivo"] = (df["stage_rank"] >= 2).astype(int)
+            
+            # Nível 3: Visita Agendada (Quem avançou para rank 3 ou mais)
+            df["Visita Agendada"] = (df["stage_rank"] >= 3).astype(int)
+            
+            # Nível 4: Visita Realizada (Quem avançou para rank 4 ou mais)
+            df["Visita Realizada"] = (df["stage_rank"] >= 4).astype(int)
 
+            # Agrupamento
             return (
                 df.groupby("unidade")[[
-                    "metric_leads",
-                    "metric_contatos",
-                    "metric_agendamentos",
-                    "metric_visitas"
+                    "Leads",
+                    "Contato Produtivo",
+                    "Visita Agendada",
+                    "Visita Realizada"
                 ]]
                 .sum()
                 .reset_index()
@@ -107,16 +131,17 @@ class FunnelEngine:
             return pd.DataFrame()
 
     def get_erp_data(self):
-        print("[ERP] Extraindo matrículas...")
+        print("[ERP] Extraindo matrículas confirmadas (2026)...")
 
+        # A query foca estritamente no ano letivo 2026
         query = """
-        SELECT
-            FILIAL AS unidade,
-            COUNT(DISTINCT RA) AS metric_matriculas
+        SELECT 
+            FILIAL AS unidade, 
+            COUNT(DISTINCT RA) AS Matricula
         FROM Z_PAINELMATRICULA
         WHERE CODPERLET = '2026'
-          AND STATUS = 'Matriculado'
-          AND [TIPO MATRICULA] <> 'REMATRÍCULA'
+        AND STATUS = 'Matriculado'
+        AND [TIPO MATRICULA] <> 'REMATRÍCULA'
         GROUP BY FILIAL
         """
 
@@ -125,8 +150,12 @@ class FunnelEngine:
             if df.empty:
                 return pd.DataFrame()
 
+            # Normaliza para garantir que o "merge" com o CRM funcione
             df["unidade"] = df["unidade"].apply(self.normaliza_nome_marca)
-            return df.groupby("unidade", as_index=False)["metric_matriculas"].sum()
+            
+            # Como o GROUP BY já foi feito no SQL, aqui só agrupamos se a normalização
+            # tiver juntado duas filiais (ex: 'Unidade Centro' e 'Centro' viraram a mesma)
+            return df.groupby("unidade", as_index=False)["Matricula"].sum()
 
         except Exception as e:
             print(f"[ERP] Erro: {e}")
@@ -146,21 +175,21 @@ class FunnelEngine:
         df_final = df_final[df_final["unidade"].str.strip() != ""]
 
         cols = [
-            "metric_leads",
-            "metric_contatos",
-            "metric_agendamentos",
-            "metric_visitas",
-            "metric_matriculas"
+            "Leads",
+            "Contato Produtivo",
+            "Visita Agendada",
+            "Visita Realizada",
+            "Matricula"
         ]
         df_final[cols] = df_final[cols].astype(int)
 
         # Remove marcas irrelevantes
         df_final = df_final[
-            (df_final["metric_leads"] > 0) |
-            (df_final["metric_matriculas"] > 0)
+            (df_final["Leads"] > 0) |
+            (df_final["Matricula"] > 0)
         ]
 
-        df_final = df_final.sort_values("metric_matriculas", ascending=False)
+        df_final = df_final.sort_values("Matricula", ascending=False)
 
         print("\nFUNIL DE CAPTAÇÃO CONSOLIDADO (CRM + ERP)")
         print(df_final.to_string(index=False))

@@ -1,6 +1,50 @@
 import pandas as pd
 from src.utils.db_manager import get_db_engine
 
+def inspect_visita_realizada():
+    engine = get_db_engine()
+
+    # 1️⃣ Exemplos
+    query_exemplos = """
+    SELECT TOP 10
+        unidade,
+        hs_pipeline_stage,
+        hs_createdate,
+        hs_lastmodifieddate
+    FROM Tabela_Leads_Raiz_v2
+    WHERE hs_pipeline_stage = '1018314554'
+    ORDER BY hs_lastmodifieddate DESC
+    """
+
+
+    df_exemplos = pd.read_sql(query_exemplos, engine)
+
+    print("\nEXEMPLOS — STATUS 1018314554 (VISITA REALIZADA)")
+    print(df_exemplos.to_string(index=False))
+
+    # 2️⃣ Total
+    query_total = """
+    SELECT COUNT(*) AS total
+    FROM Tabela_Leads_Raiz_v2
+    WHERE hs_pipeline_stage = '1018314554'
+    """
+
+    # Colunas CRM
+    query_cols = """
+    SELECT TOP 1 *
+    FROM Tabela_Leads_Raiz_v2
+    """
+    
+    df = pd.read_sql(query_cols, engine)
+    print(df.columns.tolist())
+    
+    df_total = pd.read_sql(query_total, engine)
+    total = df_total.iloc[0]["total"]
+
+    print(f"\nTOTAL DE REGISTROS COM STATUS 1018314554: {total}")
+
+    return df_exemplos, total
+
 def inspect_db():
     engine = get_db_engine()
     
@@ -32,3 +76,4 @@ def inspect_db():
 
 if __name__ == "__main__":
     inspect_db()
+    inspect_visita_realizada()
