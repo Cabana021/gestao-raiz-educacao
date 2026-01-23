@@ -57,7 +57,7 @@ class FunnelEngine:
         return self.alias_to_canonical.get(key, name)
 
     def get_crm_data(self):
-        '''Obtém dados do Hubspot'''
+        "Obtém dados do Hubspot"
         
         print("[CRM] Extraindo e normalizando dados...")
         query = f"""
@@ -80,7 +80,7 @@ class FunnelEngine:
             print(f"[CRM] Erro: {e}"); return pd.DataFrame()
 
     def get_erp_data(self):
-        '''Obtém dados do TOTVS.'''
+        "Obtém dados do TOTVS."
         
         print("[ERP] Extraindo e unificando matrículas...")
         query = """
