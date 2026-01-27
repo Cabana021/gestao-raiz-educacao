@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 # Carrega variáveis de ambiente
 load_dotenv()
 
-# Criação da String de Conexão (Formatação limpa)
+# Criação da String de Conexão 
 conn_str = (
     f"DRIVER={{SQL Server}};"
     f"SERVER={os.getenv('SERVER')};"
