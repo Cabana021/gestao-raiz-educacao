@@ -3,3 +3,4 @@ pandas
 customtkinter
 python-dotenv
 sqlalchemy
+openpyxl

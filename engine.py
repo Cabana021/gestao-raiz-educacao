@@ -207,3 +207,7 @@ class FunnelEngine:
 if __name__ == "__main__":
     motor = FunnelEngine()
     df_funil = motor.generate_full_report()
+
+    if df_funil is not None:
+        df_funil.to_excel("funil_consolidado.xlsx", index=False)
+        print("\nArquivo Excel gerado: funil_consolidado.xlsx")
