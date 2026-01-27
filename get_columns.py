@@ -4,7 +4,7 @@ from src.utils.db_manager import get_db_engine
 def inspect_visita_realizada():
     engine = get_db_engine()
 
-    # 1️⃣ Exemplos
+    # Exemplos
     query_exemplos = """
     SELECT TOP 10
         unidade,
@@ -22,14 +22,14 @@ def inspect_visita_realizada():
     print("\nEXEMPLOS — STATUS 1018314554 (VISITA REALIZADA)")
     print(df_exemplos.to_string(index=False))
 
-    # 2️⃣ Total
+    # Total de leads parados em 'Visitas Realizadas'
     query_total = """
     SELECT COUNT(*) AS total
     FROM Tabela_Leads_Raiz_v2
     WHERE hs_pipeline_stage = '1018314554'
     """
 
-    # Colunas CRM
+    # Colunas do CRM
     query_cols = """
     SELECT TOP 1 *
     FROM Tabela_Leads_Raiz_v2
@@ -41,7 +41,7 @@ def inspect_visita_realizada():
     df_total = pd.read_sql(query_total, engine)
     total = df_total.iloc[0]["total"]
 
-    print(f"\nTOTAL DE REGISTROS COM STATUS 1018314554: {total}")
+    print(f"\nTotal de oportunidade na etapa 'Visitas Realizadas': {total}")
 
     return df_exemplos, total
 

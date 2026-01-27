@@ -1,258 +1,307 @@
 {
   "AMERICANO": {
-    "marca": "AMERICANO",
-    "nome_oficial": "COLÉGIO AMERICANO",
-    "aliases": ["COLÉGIO AMERICANO", "AMERICANO MATRIZ"]
-  },
-  "APOGEU_BENFICA": {
-    "marca": "APOGEU",
-    "nome_oficial": "APOGEU BENFICA",
-    "aliases": ["APOGEU BENFICA", "APOGEU - BENFICA", "APOGEU ZONA NORTE"]
-  },
-  "APOGEU_CIDADE_ALTA": {
-    "marca": "APOGEU",
-    "nome_oficial": "APOGEU GLOBAL SCHOOL CIDADE ALTA",
-    "aliases": ["APOGEU GLOBAL SCHOOL CIDADE ALTA", "APOGEU - CIDADE ALTA", "APOGEU CIDADE ALTA"]
-  },
-  "APOGEU_DIVINOPOLIS": {
-    "marca": "APOGEU",
-    "nome_oficial": "APOGEU DIVINÓPOLIS",
-    "status": "inativo",
-    "aliases": ["APOGEU DIVINÓPOLIS", "APOGEU - DIVINÓPOLIS", "APOGEU DIVINOPOLIS LTDA"]
-  },
-  "APOGEU_ESPACO_MAGICO": {
-    "marca": "APOGEU",
-    "nome_oficial": "APOGEU GLOBAL SCHOOL FERREIRA GUIMARÃES",
-    "status": "ativo",
-    "aliases": [
-      "APOGEU GLOBAL SCHOOL FERREIRA GUIMARÃES", 
-      "APOGEU - ESPACO MAGICO", 
-      "APOGEU ESPACO MAGICO", 
-      "APOGEU FERREIRA GUIMARAES",
-      "APOGEU JARDIM NORTE", 
-      "APOGEU - JARDIM NORTE"
+    "unidades": [
+      {
+        "nome_oficial": "COLÉGIO AMERICANO",
+        "status": "ativo",
+        "aliases": ["COLÉGIO AMERICANO", "AMERICANO"]
+      }
     ]
   },
-  "APOGEU_SANTO_ANTONIO_I": {
-    "marca": "APOGEU",
-    "nome_oficial": "APOGEU SANTO ANTÔNIO I",
-    "aliases": ["APOGEU SANTO ANTÔNIO I", "APOGEU - SANTO ANTÔNIO I", "APOGEU SANTO ANTONIO I"]
+  "APOGEU": {
+    "unidades": [
+      {
+        "nome_oficial": "APOGEU BENFICA",
+        "status": "ativo",
+        "aliases": ["APOGEU BENFICA", "APOGEU - BENFICA", "APOGEU ZONA NORTE"]
+      },
+      {
+        "nome_oficial": "APOGEU GLOBAL SCHOOL CIDADE ALTA",
+        "status": "ativo",
+        "aliases": ["APOGEU GLOBAL SCHOOL CIDADE ALTA", "APOGEU - CIDADE ALTA", "APOGEU CIDADE ALTA"]
+      },
+      {
+        "nome_oficial": "APOGEU DIVINÓPOLIS",
+        "status": "inativo",
+        "aliases": ["APOGEU DIVINÓPOLIS", "APOGEU - DIVINÓPOLIS", "APOGEU DIVINOPOLIS LTDA"]
+      },
+      {
+        "nome_oficial": "APOGEU GLOBAL SCHOOL FERREIRA GUIMARÃES",
+        "status": "ativo",
+        "aliases": ["APOGEU GLOBAL SCHOOL FERREIRA GUIMARÃES", "APOGEU - ESPACO MAGICO", "APOGEU ESPACO MAGICO", "APOGEU FERREIRA GUIMARAES", "APOGEU JARDIM NORTE", "APOGEU - JARDIM NORTE"]
+      },
+      {
+        "nome_oficial": "APOGEU SANTO ANTÔNIO I",
+        "status": "ativo",
+        "aliases": ["APOGEU SANTO ANTÔNIO I", "APOGEU - SANTO ANTÔNIO I", "APOGEU SANTO ANTONIO I"]
+      },
+      {
+        "nome_oficial": "APOGEU SANTO ANTÔNIO II",
+        "status": "ativo",
+        "aliases": ["APOGEU SANTO ANTÔNIO II", "APOGEU - SANTO ANTÔNIO II", "APOGEU SANTO ANTONIO II"]
+      },
+      {
+        "nome_oficial": "SÃO TOMÁS DE AQUINO",
+        "status": "inativo",
+        "aliases": ["SÃO TOMÁS DE AQUINO", "APOGEU - SÃO TOMÁS DE AQUINO"]
+      },
+      {
+        "nome_oficial": "APOGEU UBÁ",
+        "status": "inativo",
+        "aliases": ["APOGEU UBÁ", "APOGEU - UBÁ", "APOGEU UBA", "APOGEU UBÁ 2", "APOGEU - UBÁ 2"]
+      }
+    ]
   },
-  "APOGEU_SANTO_ANTONIO_II": {
-    "marca": "APOGEU",
-    "nome_oficial": "APOGEU SANTO ANTÔNIO II",
-    "aliases": ["APOGEU SANTO ANTÔNIO II", "APOGEU - SANTO ANTÔNIO II", "APOGEU SANTO ANTONIO II"]
+  "CUBO": {
+    "unidades": [
+      {
+        "nome_oficial": "COLÉGIO E CURSO CUBO BARRA GOLF",
+        "status": "ativo",
+        "aliases": ["COLÉGIO E CURSO CUBO BARRA GOLF", "COLÉGIO E CURSO CUBO BARRA GOLFE", "COLÉGIO E CURSO AO CUBO GOLF", "COLÉGIO E CURSO AO CUBO BARRA"]
+      },
+      {
+        "nome_oficial": "COLÉGIO E CURSO AO CUBO BOTAFOGO",
+        "status": "ativo",
+        "aliases": ["COLÉGIO E CURSO AO CUBO BOTAFOGO"]
+      },
+      {
+        "nome_oficial": "COLÉGIO E CURSO AO CUBO RECREIO",
+        "status": "inativo",
+        "aliases": ["COLÉGIO E CURSO AO CUBO RECREIO"]
+      },
+      {
+        "nome_oficial": "COLÉGIO E CURSO AO CUBO TIJUCA",
+        "status": "inativo",
+        "aliases": ["COLÉGIO E CURSO AO CUBO TIJUCA"]
+      }
+    ]
   },
-  "APOGEU_SAO_TOMAS": {
-    "marca": "APOGEU",
-    "nome_oficial": "SÃO TOMÁS DE AQUINO",
-    "status": "inativo",
-    "aliases": ["SÃO TOMÁS DE AQUINO", "APOGEU - SÃO TOMÁS DE AQUINO"]
+  "BOM TEMPO": {
+    "unidades": [
+      {
+        "nome_oficial": "BOM TEMPO CRECHE E EDUCACAO INFANTIL LTDA",
+        "status": "inativo",
+        "aliases": ["BOM TEMPO CRECHE E EDUCACAO INFANTIL LTDA", "BOM TEMPO CRECHE-ESCOLA - BOTAFOGO"]
+      }
+    ]
   },
-  "APOGEU_UBA": {
-    "marca": "APOGEU",
-    "nome_oficial": "APOGEU UBÁ",
-    "status": "inativo",
-    "aliases": ["APOGEU UBÁ", "APOGEU - UBÁ", "APOGEU UBA", "APOGEU UBÁ 2", "APOGEU - UBÁ 2"]
-  },
-  "AO_CUBO_BARRA_GOLF": {
-    "marca": "CUBO",
-    "nome_oficial": "COLÉGIO E CURSO CUBO BARRA GOLF",
-    "aliases": ["COLÉGIO E CURSO CUBO BARRA GOLF", "COLÉGIO E CURSO CUBO BARRA GOLFE", "COLÉGIO E CURSO AO CUBO GOLF", "COLÉGIO E CURSO AO CUBO BARRA"]
-  },
-  "AO_CUBO_BOTAFOGO": {
-    "marca": "CUBO",
-    "nome_oficial": "COLÉGIO E CURSO AO CUBO BOTAFOGO",
-    "aliases": ["COLÉGIO E CURSO AO CUBO BOTAFOGO"]
-  },
-  "AO_CUBO_RECREIO": {
-    "marca": "CUBO",
-    "nome_oficial": "COLÉGIO E CURSO AO CUBO RECREIO",
-    "status": "inativo",
-    "aliases": ["COLÉGIO E CURSO AO CUBO RECREIO"]
-  },
-  "AO_CUBO_TIJUCA": {
-    "marca": "CUBO",
-    "nome_oficial": "COLÉGIO E CURSO AO CUBO TIJUCA",
-    "status": "inativo",
-    "aliases": ["COLÉGIO E CURSO AO CUBO TIJUCA"]
-  },
-  "BOM_TEMPO": {
-    "marca": "BOM TEMPO",
-    "nome_oficial": "BOM TEMPO CRECHE E EDUCACAO INFANTIL LTDA",
-    "aliases": ["BOM TEMPO CRECHE E EDUCACAO INFANTIL LTDA", "BOM TEMPO CRECHE-ESCOLA - BOTAFOGO"]
-  },
-  "GLOBAL_TREE_ABM": {
-    "marca": "GLOBAL TREE",
-    "nome_oficial": "CRECHE ESCOLA GLOBAL TREE - ABM",
-    "aliases": ["CRECHE ESCOLA GLOBAL TREE - ABM", "CRECHE GLOBAL TREE - MARAPENDI", "GLOBAL TREE - MARAPENDI", "GLOBAL TREE CRECHE"]
-  },
-  "GLOBAL_TREE_PENINSULA": {
-    "marca": "GLOBAL TREE",
-    "nome_oficial": "CRECHE ESCOLA GLOBAL TREE - PENINSULA",
-    "aliases": ["CRECHE ESCOLA GLOBAL TREE - PENINSULA", "CRECHE GLOBAL TREE - PENÍNSULA"]
-  },
-  "GLOBAL_TREE_RECREIO": {
-    "marca": "GLOBAL TREE",
-    "nome_oficial": "CRECHE ESCOLA GLOBAL TREE - RECREIO",
-    "aliases": ["CRECHE ESCOLA GLOBAL TREE - RECREIO", "CRECHE ESCOLA IPE RECREIO", "IPE RECREIO"]
-  },
-  "GLOBAL_TREE_RIO2": {
-    "marca": "GLOBAL TREE",
-    "nome_oficial": "CRECHE ESCOLA GLOBAL TREE - RIO 2",
-    "aliases": ["CRECHE ESCOLA GLOBAL TREE - RIO 2", "CRECHE ESCOLA IPE RIO 2", "IPE RIO 2"]
+  "GLOBAL TREE": {
+    "unidades": [
+      {
+        "nome_oficial": "CRECHE ESCOLA GLOBAL TREE - ABM",
+        "status": "ativo",
+        "aliases": ["CRECHE ESCOLA GLOBAL TREE - ABM", "CRECHE GLOBAL TREE - MARAPENDI", "GLOBAL TREE - MARAPENDI", "GLOBAL TREE CRECHE"]
+      },
+      {
+        "nome_oficial": "CRECHE ESCOLA GLOBAL TREE - PENINSULA",
+        "status": "ativo",
+        "aliases": ["CRECHE ESCOLA GLOBAL TREE - PENINSULA", "CRECHE GLOBAL TREE - PENÍNSULA"]
+      },
+      {
+        "nome_oficial": "CRECHE ESCOLA GLOBAL TREE - RECREIO",
+        "status": "ativo",
+        "aliases": ["CRECHE ESCOLA GLOBAL TREE - RECREIO", "CRECHE ESCOLA IPE RECREIO", "IPE RECREIO"]
+      },
+      {
+        "nome_oficial": "CRECHE ESCOLA GLOBAL TREE - RIO 2",
+        "status": "ativo",
+        "aliases": ["CRECHE ESCOLA GLOBAL TREE - RIO 2", "CRECHE ESCOLA IPE RIO 2", "IPE RIO 2"]
+      },
+      {
+        "nome_oficial": "CRECHE ESCOLA GLOBAL TREE - BOTAFOGO",
+        "status": "ativo",
+        "aliases": [ "CRECHE ESCOLA GLOBAL TREE BOTAFOGO","CRECHE ESCOLA GLOBAL TREE - BOTAFOGO", "GLOBAL TREE BOTAFOGO", "GLOBAL TREE - BOTAFOGO"]
+      }
+    ]
   },
   "INTEGRA": {
-    "marca": "INTEGRA",
-    "nome_oficial": "INTEGRA EDUCACIONAL S/A",
-    "aliases": ["INTEGRA EDUCACIONAL S/A", "INTEGRA"]
+    "unidades": [
+      {
+        "nome_oficial": "INTEGRA EDUCACIONAL S/A",
+        "status": "inativo",
+        "aliases": ["INTEGRA EDUCACIONAL S/A", "INTEGRA"]
+      }
+    ]
   },
-  "LEONARDO_DA_VINCI_ALFA": {
-    "marca": "LEONARDO DA VINCI",
-    "nome_oficial": "COLÉGIO LEONARDO DA VINCI - ALFA",
-    "aliases": ["COLÉGIO LEONARDO DA VINCI - ALFA"]
+  "LEONARDO DA VINCI": {
+    "unidades": [
+      {
+        "nome_oficial": "COLÉGIO LEONARDO DA VINCI - ALFA",
+        "status": "ativo",
+        "aliases": ["COLÉGIOS INTEGRADOS LEONARDO DA VINCI - ALFA" ,"COLÉGIO LEONARDO DA VINCI - ALFA", "ALFA"]
+      },
+      {
+        "nome_oficial": "COLÉGIO LEONARDO DA VINCI - BETA",
+        "status": "ativo",
+        "aliases": ["COLÉGIOS INTEGRADOS LEONARDO DA VINCI - BETA" ,"COLÉGIO LEONARDO DA VINCI - BETA", "BETA"]
+      },
+      {
+        "nome_oficial": "COLÉGIOS INTEGRADOS LEONARDO DA VINCI - GAMA",
+        "status": "ativo",
+        "aliases": ["COLÉGIOS INTEGRADOS LEONARDO DA VINCI - GAMA", "COLÉGIO LEONARDO DA VINCI - GAMA", "GAMA"]
+      }
+    ]
   },
-  "LEONARDO_DA_VINCI_BETA": {
-    "marca": "LEONARDO DA VINCI",
-    "nome_oficial": "COLÉGIO LEONARDO DA VINCI - BETA",
-    "aliases": ["COLÉGIO LEONARDO DA VINCI - BETA"]
+  "MATRIZ": {
+    "unidades": [
+      {
+        "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO BANGU",
+        "status": "ativo",
+        "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO BANGU", "COLEGIO E CURSO MATRIZ EDUCAÇÃO BANGU"]
+      },
+      {
+        "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO CAMPO GRANDE",
+        "status": "ativo",
+        "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO CAMPO GRANDE"]
+      },
+      {
+        "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO DUQUE DE CAXIAS",
+        "status": "ativo",
+        "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO DUQUE DE CAXIAS", "COLEGIO E CURSO MATRIZ EDUCAÇÃO DUQUE DE CAXIAS"]
+      },
+      {
+        "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO MADUREIRA",
+        "status": "ativo",
+        "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO MADUREIRA", "COLEGIO E CURSO MATRIZ EDUCAÇÃO MADUREIRA"]
+      },
+      {
+        "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO NOVA IGUACU",
+        "status": "ativo",
+        "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO NOVA IGUACU"]
+      },
+      {
+        "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO RETIRO DOS ARTISTAS",
+        "status": "ativo",
+        "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO RETIRO DOS ARTISTAS", "COLEGIO E CURSO MATRIZ EDUCACAO PECHINCHA", "COLEGIO E CURSO MATRIZ EDUCAÇÃO PECHINCHA"]
+      },
+      {
+        "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO ROCHA MIRANDA",
+        "status": "ativo",
+        "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO ROCHA MIRANDA", "COLEGIO E CURSO MATRIZ EDUCAÇÃO ROCHA MIRANDA"]
+      },
+      {
+        "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO SÃO JOÃO DE MERITI",
+        "status": "ativo",
+        "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO SÃO JOÃO DE MERITI", "COLEGIO E CURSO MATRIZ EDUCAÇÃO SÃO JOÃO DE MERITI"]
+      },
+      {
+        "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO TAQUARA",
+        "status": "ativo",
+        "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO TAQUARA", "COLEGIO E CURSO MATRIZ EDUCAÇÃO TAQUARA"]
+      },
+      {
+        "nome_oficial": "COLÉGIO E CURSO MATRIZ EDUCACAO TIJUCA",
+        "status": "ativo",
+        "aliases": ["COLÉGIO E CURSO MATRIZ EDUCACAO TIJUCA", "COLEGIO E CURSO MATRIZ EDUCACAO TIJUCA"]
+      }
+    ]
   },
-  "LEONARDO_DA_VINCI_GAMA": {
-    "marca": "LEONARDO DA VINCI",
-    "nome_oficial": "COLÉGIOS INTEGRADOS LEONARDO DA VINCI - GAMA",
-    "aliases": ["COLÉGIOS INTEGRADOS LEONARDO DA VINCI - GAMA", "COLÉGIO LEONARDO DA VINCI - GAMA"]
-  },
-  "MATRIZ_BANGU": {
-    "marca": "MATRIZ",
-    "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO BANGU",
-    "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO BANGU", "COLEGIO E CURSO MATRIZ EDUCAÇÃO BANGU"]
-  },
-  "MATRIZ_CAMPO_GRANDE": {
-    "marca": "MATRIZ",
-    "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO CAMPO GRANDE",
-    "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO CAMPO GRANDE"]
-  },
-  "MATRIZ_DUQUE_DE_CAXIAS": {
-    "marca": "MATRIZ",
-    "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO DUQUE DE CAXIAS",
-    "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO DUQUE DE CAXIAS", "COLEGIO E CURSO MATRIZ EDUCAÇÃO DUQUE DE CAXIAS"]
-  },
-  "MATRIZ_MADUREIRA": {
-    "marca": "MATRIZ",
-    "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO MADUREIRA",
-    "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO MADUREIRA", "COLEGIO E CURSO MATRIZ EDUCAÇÃO MADUREIRA"]
-  },
-  "MATRIZ_NOVA_IGUACU": {
-    "marca": "MATRIZ",
-    "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO NOVA IGUACU",
-    "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO NOVA IGUACU"]
-  },
-  "MATRIZ_PECHINCHA": {
-    "marca": "MATRIZ",
-    "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO RETIRO DOS ARTISTAS",
-    "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO RETIRO DOS ARTISTAS", "COLEGIO E CURSO MATRIZ EDUCACAO PECHINCHA", "COLEGIO E CURSO MATRIZ EDUCAÇÃO PECHINCHA"]
-  },
-  "MATRIZ_ROCHA_MIRANDA": {
-    "marca": "MATRIZ",
-    "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO ROCHA MIRANDA",
-    "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO ROCHA MIRANDA", "COLEGIO E CURSO MATRIZ EDUCAÇÃO ROCHA MIRANDA"]
-  },
-  "MATRIZ_SAO_JOAO": {
-    "marca": "MATRIZ",
-    "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO SÃO JOÃO DE MERITI",
-    "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO SÃO JOÃO DE MERITI", "COLEGIO E CURSO MATRIZ EDUCAÇÃO SÃO JOÃO DE MERITI"]
-  },
-  "MATRIZ_TAQUARA": {
-    "marca": "MATRIZ",
-    "nome_oficial": "COLEGIO E CURSO MATRIZ EDUCACAO TAQUARA",
-    "aliases": ["COLEGIO E CURSO MATRIZ EDUCACAO TAQUARA", "COLEGIO E CURSO MATRIZ EDUCAÇÃO TAQUARA"]
-  },
-  "MATRIZ_TIJUCA": {
-    "marca": "MATRIZ",
-    "nome_oficial": "COLÉGIO E CURSO MATRIZ EDUCACAO TIJUCA",
-    "aliases": ["COLÉGIO E CURSO MATRIZ EDUCACAO TIJUCA", "COLEGIO E CURSO MATRIZ EDUCACAO TIJUCA"]
-  },
-  "QI_BOTAFOGO": {
-    "marca": "QI",
-    "nome_oficial": "COLÉGIO QI BOTAFOGO",
-    "status": "inativo",
-    "aliases": ["COLÉGIO QI BOTAFOGO"]
-  },
-  "QI_FREGUESIA": {
-    "marca": "QI",
-    "nome_oficial": "COLÉGIO QI FREGUESIA",
-    "aliases": ["COLÉGIO QI FREGUESIA"]
-  },
-  "QI_METROPOLITANO": {
-    "marca": "QI",
-    "nome_oficial": "COLEGIO QI METROPOLITANO",
-    "aliases": ["COLEGIO QI METROPOLITANO"]
-  },
-  "QI_RECREIO": {
-    "marca": "QI",
-    "nome_oficial": "COLEGIO QI RECREIO",
-    "aliases": ["COLEGIO QI RECREIO", "COLEGIO QI - RECREIO"]
-  },
-  "QI_RIO2": {
-    "marca": "QI",
-    "nome_oficial": "COLÉGIO QI RIO 2",
-    "aliases": ["COLÉGIO QI RIO 2", "COLÉGIO QI RIO 2"]
-  },
-  "QI_TIJUCA": {
-    "marca": "QI",
-    "nome_oficial": "COLÉGIO QI TIJUCA",
-    "aliases": ["COLÉGIO QI TIJUCA"]
-  },
-  "QI_VALQUEIRE": {
-    "marca": "QI",
-    "nome_oficial": "COLÉGIO QI VALQUEIRE",
-    "aliases": ["COLÉGIO QI VALQUEIRE"]
+  "QI": {
+    "unidades": [
+      {
+        "nome_oficial": "COLÉGIO QI BOTAFOGO",
+        "status": "inativo",
+        "aliases": ["COLÉGIO QI BOTAFOGO"]
+      },
+      {
+        "nome_oficial": "COLÉGIO QI FREGUESIA",
+        "status": "ativo",
+        "aliases": ["COLÉGIO QI FREGUESIA"]
+      },
+      {
+        "nome_oficial": "COLEGIO QI METROPOLITANO",
+        "status": "ativo",
+        "aliases": ["COLEGIO QI METROPOLITANO"]
+      },
+      {
+        "nome_oficial": "COLEGIO QI RECREIO",
+        "status": "ativo",
+        "aliases": ["COLEGIO QI RECREIO", "COLEGIO QI - RECREIO"]
+      },
+      {
+        "nome_oficial": "COLÉGIO QI RIO 2",
+        "status": "ativo",
+        "aliases": ["COLÉGIO QI RIO 2"]
+      },
+      {
+        "nome_oficial": "COLÉGIO QI TIJUCA",
+        "status": "ativo",
+        "aliases": ["COLÉGIO QI TIJUCA"]
+      },
+      {
+        "nome_oficial": "COLÉGIO QI VALQUEIRE",
+        "status": "ativo",
+        "aliases": ["COLÉGIO QI VALQUEIRE"]
+      }
+    ]
   },
   "SAP": {
-    "marca": "SAP",
-    "nome_oficial": "ESCOLA SAP",
-    "aliases": ["ESCOLA SAP", "ESCOLA SAP - BARRA DA TIJUCA"]
+    "unidades": [
+      {
+        "nome_oficial": "ESCOLA SAP",
+        "status": "ativo",
+        "aliases": ["ESCOLA SAP", "ESCOLA SAP - BARRA DA TIJUCA"]
+      }
+    ]
   },
-  "SA_PEREIRA_MATRIZ": {
-    "marca": "SÁ PEREIRA",
-    "nome_oficial": "ESCOLA SA PEREIRA (R. DA MATRIZ)",
-    "aliases": ["ESCOLA SA PEREIRA (R. DA MATRIZ)", "ESCOLA SÁ PEREIRA S.A. MATRIZ"]
+  "SÁ PEREIRA": {
+    "unidades": [
+      {
+        "nome_oficial": "ESCOLA SA PEREIRA (R. DA MATRIZ)",
+        "status": "ativo",
+        "aliases": ["ESCOLA SA PEREIRA (R. DA MATRIZ)", "ESCOLA SÁ PEREIRA S.A. MATRIZ"]
+      },
+      {
+        "nome_oficial": "ESCOLA SÁ PEREIRA S.A. CAPISTRANO",
+        "status": "inativo",
+        "aliases": ["ESCOLA SÁ PEREIRA S.A. CAPISTRANO"]
+      },
+      {
+        "nome_oficial": "ESCOLA SÁ PEREIRA S.A. MARQUES",
+        "status": "inativo",
+        "aliases": ["ESCOLA SÁ PEREIRA S.A. MARQUES"]
+      }
+    ]
   },
-  "SA_PEREIRA_CAPISTRANO": {
-    "marca": "SÁ PEREIRA",
-    "nome_oficial": "ESCOLA SÁ PEREIRA S.A. CAPISTRANO",
-    "aliases": ["ESCOLA SÁ PEREIRA S.A. CAPISTRANO"]
+  "SARAH DAWSEY": {
+    "unidades": [
+      {
+        "nome_oficial": "COLEGIO SARAH DAWSEY - JUIZ DE FORA",
+        "status": "ativo",
+        "aliases": ["COLEGIO SARAH DAWSEY - JUIZ DE FORA", "SARAH DAWSEY - JUIZ DE FORA"]
+      }
+    ]
   },
-  "SA_PEREIRA_MARQUES": {
-    "marca": "SÁ PEREIRA",
-    "nome_oficial": "ESCOLA SÁ PEREIRA S.A. MARQUES",
-    "aliases": ["ESCOLA SÁ PEREIRA S.A. MARQUES"]
+  "UNIÃO": {
+    "unidades": [
+      {
+        "nome_oficial": "COLEGIO E CURSO UNIAO LTDA",
+        "status": "ativo",
+        "aliases": ["COLEGIO E CURSO UNIAO LTDA", "UNIÃO MATRIZ"]
+      }
+    ]
   },
-  "SARAH_DAWSEY_JF": {
-    "marca": "SARAH DAWSEY",
-    "nome_oficial": "COLEGIO SARAH DAWSEY - JUIZ DE FORA",
-    "aliases": ["COLEGIO SARAH DAWSEY - JUIZ DE FORA", "SARAH DAWSEY - JUIZ DE FORA"]
+  "UNIFICADO": {
+    "unidades": [
+      {
+        "nome_oficial": "UNIFICADO RAMIRO",
+        "status": "inativo",
+        "aliases": ["UNIFICADO RAMIRO", "COLEGIO UNIFICADO RAMIRO"]
+      },
+      {
+        "nome_oficial": "UNIFICADO ZONA SUL",
+        "status": "ativo",
+        "aliases": ["UNIFICADO ZONA SUL", "COLEGIO UNIFICADO ZONA SUL"]
+      }
+    ]
   },
-  "UNIAO": {
-    "marca": "UNIÃO",
-    "nome_oficial": "COLEGIO E CURSO UNIAO LTDA",
-    "aliases": ["COLEGIO E CURSO UNIAO LTDA", "UNIÃO MATRIZ"]
-  },
-  "UNIFICADO_RAMIRO": {
-    "marca": "UNIFICADO",
-    "nome_oficial": "UNIFICADO RAMIRO",
-    "status": "inativo",
-    "aliases": ["UNIFICADO RAMIRO", "COLEGIO UNIFICADO RAMIRO"]
-  },
-  "UNIFICADO_ZONA_SUL": {
-    "marca": "UNIFICADO",
-    "nome_oficial": "UNIFICADO ZONA SUL",
-    "aliases": ["UNIFICADO ZONA SUL", "COLEGIO UNIFICADO ZONA SUL"]
-  },
-  "DESCONHECIDO": {
-    "marca": "OUTROS",
-    "nome_oficial": "Leads Raiz Sem Unidades",
-    "status": "ativo",
-    "aliases": ["NAN", "NONE", "DESCONHECIDO", "", "NULL"]
+  "OUTROS": {
+    "unidades": [
+      {
+        "nome_oficial": "Leads Raiz Sem Unidades",
+        "status": "ativo",
+        "aliases": ["NAN", "NONE", "DESCONHECIDO", "", "NULL"]
+      }
+    ]
   }
 }
