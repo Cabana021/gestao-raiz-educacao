@@ -131,19 +131,24 @@ class FunnelEngine:
             return pd.DataFrame()
 
     def get_erp_data(self):
-        print("[ERP] Extraindo matrículas confirmadas (2026)...")
-
-        # A query foca estritamente no ano letivo 2026
+        print("[ERP] Extraindo matrículas confirmadas e pré-matrículas (2025-2026)...")
+        
+        # Query ajustada para incluir 2025/2026, status pré-matriculado e validade 'S'
         query = """
         SELECT 
-            FILIAL AS unidade, 
-            COUNT(DISTINCT RA) AS Matricula
-        FROM Z_PAINELMATRICULA
-        WHERE CODPERLET = '2026'
-        AND STATUS = 'Matriculado'
-        AND [TIPO MATRICULA] <> 'REMATRÍCULA'
-        GROUP BY FILIAL
+            T1.FILIAL AS unidade, 
+            COUNT(DISTINCT T1.RA) AS Matricula
+        FROM Z_PAINELMATRICULA T1
+        INNER JOIN Tabela_Matrizcurricular T2 
+            ON T1.GRADE = T2.GRADE 
+            AND T1.CODCOLIGADA = T2.CODCOLIGADA
+            AND T1.CODFILIAL = T2.CODFILIAL
+        WHERE T1.CODPERLET IN ('2026')
+        AND T1.STATUS IN ('Matriculado', 'Pré-Matriculado')
+        AND T2.[Matricula Validade] = 'S'
+        GROUP BY T1.FILIAL
         """
+
 
         try:
             df = pd.read_sql(query, self.engine)
