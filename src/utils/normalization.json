@@ -49,6 +49,16 @@
         "nome_oficial": "APOGEU UBÁ",
         "status": "inativo",
         "aliases": ["APOGEU UBÁ", "APOGEU - UBÁ", "APOGEU UBA", "APOGEU UBÁ 2", "APOGEU - UBÁ 2"]
+      },
+      {
+        "nome_oficial": "APOGEU POUSO ALEGRE",
+        "status": "inativo",
+        "aliases": ["APOGEU POUSO ALEGRE", "APOGEU - POUSO ALEGRE", "APOGEU GLOBAL SCHOOL POUSO ALEGRE", "APOGEU GLOBAL SCHOOL - POUSO ALEGRE"]
+      },
+      {
+        "nome_oficial": "APOGEU PARÁ DE MINAS",
+        "status": "inativo",
+        "aliases": ["APOGEU PARÁ DE MINAS", "APOGEU PARA DE MINAS", "APOGEU GLOBAL SCHOOL PARA DE MINAS", "APOGEU GLOBAL SCHOOL - PARA DE MINAS"]
       }
     ]
   },
