@@ -208,17 +208,14 @@ class GeradorRelatorio:
             return False
 
     def _criar_dashboard(self, writer, wb, df_marcas, config):
-        """Método privado para criar a aba de dashboard visual."""
+        """Método privado para criar a aba de dashboard visual com Funil e Cohort."""
         nome_aba_dados = 'Dados_Graficos'
-        # Limpeza de colunas indesejadas
         cols_limpas = [c for c in df_marcas.columns if "Unnamed" not in c and c != "unidade"]
-        # Mantém a coluna unidade se ela for a identificadora
+        
         if "unidade" in df_marcas.columns:
             cols_limpas.insert(0, "unidade")
             
         df_clean = df_marcas[cols_limpas].copy()
-        
-        # Se existir coluna 'unidade', renomear para 'Marca' para o gráfico entender
         if "unidade" in df_clean.columns:
             df_clean.rename(columns={"unidade": "Marca"}, inplace=True)
 
@@ -237,67 +234,57 @@ class GeradorRelatorio:
         num_marcas = len(df_clean)
         if num_marcas == 0: return
 
-        chart_width = 1000
-        chart_height = max(350, 120 + (num_marcas * 50))
-        gap_rows = int(chart_height / 18) + 4
+        # Configurações de layout
         start_row = 4
-
-        cols_para_plotar = [c for c in df_clean.columns if c != "Marca" and "Var%" not in c and c not in ["Filial"]]
-        kpis_unicos = sorted(list(set(c.split(" (")[0] for c in cols_para_plotar)))
+        chart_width = 600 # Reduzi um pouco a largura para caber o outro gráfico ao lado
+        chart_height = 300
         
-        # Ordem de plotagem
-        ordem_graficos = [
-            "Leads", "Contato Produtivo", "Visita Agendada", "Visita Realizada", "Matrícula"
-        ]
+        # 1. GRÁFICOS DE BARRA (FUNIL ACUMULADO) - Seu código original com ajuste de tamanho
+        ordem_graficos = ["Leads", "Contato Produtivo", "Visita Agendada", "Visita Realizada", "Matrícula"]
         
-        # Função auxiliar para ordenar KPIs
-        def sort_kpis(k):
-            for i, o in enumerate(ordem_graficos):
-                if k.startswith(o): return i
-            return 999
-
-        kpis_unicos.sort(key=sort_kpis)
-
-        for idx, kpi in enumerate(kpis_unicos):
-            chart = wb.add_chart({'type': 'bar'})
-            cols_kpi = [c for c in cols_para_plotar if c.startswith(kpi)] 
-
-            if not cols_kpi: continue
+        for idx, kpi in enumerate(ordem_graficos):
+            if kpi not in df_clean.columns: continue
             
-            # Formatação do eixo
-            is_pct = any(x in kpi for x in ['%', 'Taxa', 'Conv'])
-            mask_eixo = '0%' if is_pct else '#,##0'
-
-            # Referência aos dados: [sheetname, first_row, first_col, last_row, last_col]
-            # A coluna 0 é a Categoria (Marca)
-            cat_formula = [nome_aba_dados, 1, 0, num_marcas, 0]
-
-            for nome_coluna in cols_kpi:
-                try:
-                    col_idx = df_clean.columns.get_loc(nome_coluna)
-                    legenda = nome_coluna
-                    
-                    chart.add_series({
-                        'name': legenda,
-                        'categories': cat_formula,
-                        'values': [nome_aba_dados, 1, col_idx, num_marcas, col_idx],
-                        'fill': {'color': '#203764'},
-                        'overlap': -20, 'gap': 50,
-                        'data_labels': {
-                            'value': True, 'num_format': mask_eixo,
-                            'font': {'bold': True, 'color': '#404040', 'size': 9, 'name': 'Segoe UI'},
-                            'position': 'outside_end'
-                        }
-                    })
-                except:
-                    continue
-
-            chart.set_title({'name': kpi})
-            chart.set_legend({'position': 'top'})
-            chart.set_chartarea({'border': {'none': True}})
+            chart = wb.add_chart({'type': 'bar'})
+            col_idx = df_clean.columns.get_loc(kpi)
+            
+            chart.add_series({
+                'name': kpi,
+                'categories': [nome_aba_dados, 1, 0, num_marcas, 0],
+                'values': [nome_aba_dados, 1, col_idx, num_marcas, col_idx],
+                'fill': {'color': '#203764'},
+                'data_labels': {'value': True, 'num_format': '#,##0', 'font': {'bold': True}}
+            })
+            chart.set_title({'name': f"Total Acumulado: {kpi}"})
             chart.set_size({'width': chart_width, 'height': chart_height})
+            chart.set_legend({'none': True})
+            
+            ws_dash.insert_chart(f'B{start_row + (idx * 16)}', chart)
 
-            ws_dash.insert_chart(f'B{start_row + (idx * gap_rows)}', chart)
+        # 2. NOVO: GRÁFICO DE COHORT (ESTOQUE ATUAL)
+        # Vamos plotar onde as pessoas estão paradas no total geral (primeira linha do DF)
+        cols_cohort = ["Inertes em Lead", "Aguardando Agendamento", "Aguardando Visita", "Em Negociação"]
+        # Verifica quais colunas de cohort existem no DF
+        present_cohort = [c for c in cols_cohort if c in df_clean.columns]
+        
+        if present_cohort:
+            chart_pie = wb.add_chart({'type': 'pie'})
+            
+            # Para cada coluna de cohort presente, pegamos o índice
+            for c_name in present_cohort:
+                c_idx = df_clean.columns.get_loc(c_name)
+                chart_pie.add_series({
+                    'name': 'Distribuição de Leads Parados',
+                    'categories': [nome_aba_dados, 0, df_clean.columns.get_loc(present_cohort[0]), 0, df_clean.columns.get_loc(present_cohort[-1])],
+                    'values':     [nome_aba_dados, 1, df_clean.columns.get_loc(present_cohort[0]), 1, df_clean.columns.get_loc(present_cohort[-1])],
+                    'data_labels': {'percentage': True, 'category': True, 'position': 'outside_end', 'font': {'size': 10}},
+                })
+            
+            chart_pie.set_title({'name': 'Análise de Cohort (Onde o processo está parado)'})
+            chart_pie.set_size({'width': 500, 'height': 450})
+            
+            # Insere o gráfico de pizza à direita dos de barra
+            ws_dash.insert_chart('L4', chart_pie)
 
 
 class ReportHandler:

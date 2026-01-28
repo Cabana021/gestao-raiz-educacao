@@ -106,35 +106,45 @@ class FunnelEngine:
             if df.empty:
                 return pd.DataFrame()
 
-            # Normalização do nome da marca para bater com o ERP depois
-            df["unidade"] = df["unidade"].apply(self.normaliza_nome_marca)
+            # 1. Mapeamento para COHORT (Onde o lead está parado hoje)
+            stage_labels = {v: k for k, v in self.config.items()}
+            df["status_atual"] = df["hs_pipeline_stage"].map(stage_labels).fillna("OUTROS")
             
-            df["stage_rank"] = df["hs_pipeline_stage"].map(self.stage_order).fillna(0)
+            cohort_cols = {
+                "LEADS": "Inertes em Lead",
+                "LEADS_CONTATADOS": "Aguardando Agendamento",
+                "AGENDAMENTO_REALIZADO": "Aguardando Visita",
+                "VISITA_REALIZADA": "Em Negociação",
+                "MATRICULADO_TOTAL": "Finalizados (Matrícula)"
+            }
+            
+            cohort_counts = df.groupby(["unidade", "status_atual"]).size().unstack(fill_value=0)
+            cohort_counts = cohort_counts.rename(columns=cohort_cols)
 
-            # Definição das Métricas Acumuladas
-            # Nível 1: Leads (Todo mundo que entrou no banco é Lead, mesmo que perdido)
-            df["Leads"] = 1 
-            
-            # Nível 2: Contato Produtivo (Quem avançou para rank 2 ou mais)
-            df["Contato Produtivo"] = (df["stage_rank"] >= 2).astype(int)
-            
-            # Nível 3: Visita Agendada (Quem avançou para rank 3 ou mais)
-            df["Visita Agendada"] = (df["stage_rank"] >= 3).astype(int)
-            
-            # Nível 4: Visita Realizada (Quem avançou para rank 4 ou mais)
-            df["Visita Realizada"] = (df["stage_rank"] >= 4).astype(int)
+            # 2. Lógica para FUNIL ACUMULADO
+            # Definimos o peso de cada etapa para soma cumulativa
+            weights = {
+                "1018380105": 1, # LEAD
+                "1018380106": 2, # CONTATO
+                "1022335280": 3, # AGENDADO
+                "1018314554": 4, # VISITA
+                "1111696774": 5  # MATRÍCULA
+            }
+            df["rank"] = df["hs_pipeline_stage"].map(weights).fillna(0)
 
-            # Agrupamento
-            return (
-                df.groupby("unidade")[[
-                    "Leads",
-                    "Contato Produtivo",
-                    "Visita Agendada",
-                    "Visita Realizada"
-                ]]
-                .sum()
-                .reset_index()
-            )
+            # Se o rank é 5 (Matrícula), ele soma +1 em todas as etapas anteriores
+            df["Leads"] = 1
+            df["Contato Produtivo"] = (df["rank"] >= 2).astype(int)
+            df["Visita Agendada"] = (df["rank"] >= 3).astype(int)
+            df["Visita Realizada"] = (df["rank"] >= 4).astype(int)
+            df["Matrícula"] = (df["rank"] >= 5).astype(int)
+
+            res_acumulado = df.groupby("unidade")[[
+                "Leads", "Contato Produtivo", "Visita Agendada", "Visita Realizada", "Matrícula"
+            ]].sum().reset_index()
+            
+            # Merge Final: Funil + Cohort
+            return pd.merge(res_acumulado, cohort_counts, on="unidade", how="left").fillna(0)
 
         except Exception as e:
             print(f"[CRM] Erro: {e}")
