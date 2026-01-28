@@ -52,19 +52,21 @@ class FunnelEngine:
         self.inactive_units = [] 
 
         for marca, info in self.unit_map.items():
-            unidades = info.get("unidades", [])
-            for unidade in unidades:
-                canonical = unidade["nome_oficial"]
-                status = unidade.get("status", "ativo")
+            for unidade in info.get("unidades", []):
+                nome_original = unidade["nome_oficial"]
+                # Regra de Sucessão: Se houver sucessora, o destino é ela
+                nome_destino = unidade.get("sucessora", nome_original)
                 
-                if status == "inativo":
-                    self.inactive_units.append(canonical)
-                    
-                # Mapeia nome oficial e aliases
-                alias_map[self._normalize_key(canonical)] = canonical
+                status = unidade.get("status", "ativo")
+                # Só vai para a lista de exclusão se for inativa E não tiver para onde ir
+                if status == "inativo" and "sucessora" not in unidade:
+                    self.inactive_units.append(nome_original)
+                
+                # Mapeia o nome oficial e todos os aliases para o destino final
+                alias_map[self._normalize_key(nome_original)] = nome_destino
                 for alias in unidade.get("aliases", []):
-                    alias_map[self._normalize_key(alias)] = canonical
-                    
+                    alias_map[self._normalize_key(alias)] = nome_destino
+                        
         return alias_map
 
     def normaliza_nome_marca(self, name):
@@ -181,15 +183,26 @@ class FunnelEngine:
         if df_crm.empty and df_erp.empty:
             return None
 
-        # Merge CRM + ERP (ERP manda no número final de matrículas)
+        # 1. Merge inicial entre CRM e ERP
         df_final = pd.merge(df_crm, df_erp, on="unidade", how="outer").fillna(0)
 
-        # Filtra inativas
+        # 2. TRADUÇÃO E CONSOLIDAÇÃO (O "pulo do gato")
+        # Aplicamos a normalização novamente para garantir que sucessoras (Ex: Integra -> Apogeu) 
+        # recebam o nome do destino final.
+        df_final["unidade"] = df_final["unidade"].apply(self.normaliza_nome_marca)
+
+        # Agrupamos por unidade e somamos os valores numéricos.
+        # Se 'Integra' e 'Apogeu' agora se chamam 'Apogeu', os KPIs serão somados aqui.
+        df_final = df_final.groupby("unidade").sum(numeric_only=True).reset_index()
+
+        # 3. FILTRAGEM
+        # Filtra unidades inativas (aquelas que ficaram sem sucessora no normalization.json)
         df_final = df_final[~df_final["unidade"].isin(self.inactive_units)]
+        # Remove strings vazias ou nulas
         df_final = df_final[df_final["unidade"].str.strip() != ""]
 
-        # Garante que todas as colunas necessárias para a UI existem (mesmo que zeradas)
-        # Isso corrige o bug onde o gráfico de pizza quebra se não houver dados em uma etapa
+        # 4. INTEGRIDADE DA UI
+        # Garante que todas as colunas que a interface espera existam
         for col in self.required_ui_columns:
             if col not in df_final.columns:
                 df_final[col] = 0
@@ -198,15 +211,17 @@ class FunnelEngine:
         numeric_cols = df_final.select_dtypes(include=['float', 'int']).columns
         df_final[numeric_cols] = df_final[numeric_cols].astype(int)
 
-        # Remove linhas irrelevantes (sem lead e sem matrícula)
+        # 5. LIMPEZA FINAL
+        # Remove linhas que não possuem volume de dados (evita lixo no dashboard)
         df_final = df_final[
             (df_final["Leads"] > 0) |
             (df_final["Matricula"] > 0)
         ]
 
+        # Ordenação por performance de matrículas
         df_final = df_final.sort_values("Matricula", ascending=False)
         
-        print(f"\n[ENGINE] Dados gerados: {len(df_final)} linhas.")
+        print(f"\n[ENGINE] Dados gerados e consolidados: {len(df_final)} linhas.")
         return df_final
 
 if __name__ == "__main__":

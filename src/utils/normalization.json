@@ -59,6 +59,18 @@
         "nome_oficial": "APOGEU PARÁ DE MINAS",
         "status": "inativo",
         "aliases": ["APOGEU PARÁ DE MINAS", "APOGEU PARA DE MINAS", "APOGEU GLOBAL SCHOOL PARA DE MINAS", "APOGEU GLOBAL SCHOOL - PARA DE MINAS"]
+      },
+      {
+        "nome_oficial": "APOGEU - ESPACO MAGICO",
+        "status": "inativo",
+        "sucessora": "APOGEU GLOBAL SCHOOL FERREIRA GUIMARÃES",
+        "aliases": ["APOGEU - ESPACO MAGICO", "APOGEU ESPACO MAGICO"]
+      },
+      {
+        "nome_oficial": "APOGEU - JARDIM NORTE",
+        "status": "inativo",
+        "sucessora": "APOGEU GLOBAL SCHOOL FERREIRA GUIMARÃES",
+        "aliases": ["APOGEU JARDIM NORTE", "APOGEU - JARDIM NORTE"]
       }
     ]
   },
@@ -91,6 +103,7 @@
       {
         "nome_oficial": "BOM TEMPO CRECHE E EDUCACAO INFANTIL LTDA",
         "status": "inativo",
+        "sucessora": "CRECHE ESCOLA GLOBAL TREE - BOTAFOGO",
         "aliases": ["BOM TEMPO CRECHE E EDUCACAO INFANTIL LTDA", "BOM TEMPO CRECHE-ESCOLA - BOTAFOGO"]
       }
     ]
@@ -129,6 +142,7 @@
       {
         "nome_oficial": "INTEGRA EDUCACIONAL S/A",
         "status": "inativo",
+        "sucessora": "APOGEU GLOBAL SCHOOL CIDADE ALTA",
         "aliases": ["INTEGRA EDUCACIONAL S/A", "INTEGRA"]
       }
     ]
