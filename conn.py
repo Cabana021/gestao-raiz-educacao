@@ -3,10 +3,9 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 
-# Carrega variáveis de ambiente
+# Carrega variáveis de ambiente e configura a conexão com o DB
 load_dotenv()
 
-# Criação da String de Conexão 
 conn_str = (
     f"DRIVER={{SQL Server}};"
     f"SERVER={os.getenv('SERVER')};"
@@ -20,7 +19,6 @@ conn_str = (
 def explorar_banco():
     """Conecta independentemente para listar tabelas e colunas."""
     try:
-        # Context Manager (with) fecha a conexão sozinho ao terminar
         with pyodbc.connect(conn_str) as conn:
             print("[Explorar] Conexão bem sucedida!\n")
             
@@ -49,10 +47,10 @@ def explorar_banco():
             df_colunas = pd.read_sql(query_colunas, conn)
             
             if not df_colunas.empty:
-                print("\n💎 Colunas encontradas:")
+                print("\nColunas encontradas:")
                 print(df_colunas.to_string())
             else:
-                print("\n⚠️ Nenhuma coluna encontrada.")
+                print("\nNenhuma coluna encontrada.")
 
     except Exception as e:
         print(f"Erro ao explorar banco: {e}")
@@ -60,7 +58,7 @@ def explorar_banco():
 def espiar_tabela(nome_tabela, conexao):
     print(f"\nEspiando: {nome_tabela}")
     try:
-        # Pega as 5 primeiras linhas para vermos o CONTEÚDO
+        # Pega as 5 primeiras linhas para ver o conteúdo
         query = f"SELECT TOP 5 * FROM {nome_tabela}"
         df = pd.read_sql(query, conexao)
         
@@ -69,7 +67,7 @@ def espiar_tabela(nome_tabela, conexao):
             pd.set_option('display.max_columns', None) 
             print(df.head())
             
-            # Se tiver colunas de Status, lista os valores únicos para sabermos os nomes exatos
+            # Se tiver colunas de Status, lista os valores únicos para ver os nomes exatos
             cols_status = [c for c in df.columns if 'Status' in c or 'Fase' in c or 'Etapa' in c]
             for col in cols_status:
                 print(f"\nValues únicos em '{col}':")
@@ -92,7 +90,7 @@ if __name__ == "__main__":
     
     try:
         with pyodbc.connect(conn_str) as conn:
-            print("✅ Conectado! Iniciando inspeção...")
+            print("Conectado! Iniciando inspeção...")
 
             # 1. Investigar a tabela de Leads/CRM (Onde devem estar as Visitas e Leads)
             espiar_tabela('Tabela_Hubspot', conn)
@@ -112,7 +110,7 @@ if __name__ == "__main__":
     
     try:
         with pyodbc.connect(conn_str) as conn:
-            print("✅ Conexão principal aberta.")
+            print("Conexão principal aberta.")
                 
         print("\n--- Iniciando Exploração do Schema ---")
         explorar_banco()

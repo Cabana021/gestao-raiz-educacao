@@ -42,27 +42,37 @@ class FunnelEngine:
         """
         unidade_norm = self._normalize_key(unidade)
 
-        for marca, data in self.unit_map.items():
-            canonical = self._normalize_key(data["nome_oficial"])
-            if unidade_norm == canonical:
-                return marca
-
+        for marca, info in self.unit_map.items():
+            for unidade_data in info.get("unidades", []):
+                canonical = self._normalize_key(unidade_data["nome_oficial"])
+                if unidade_norm == canonical:
+                    return marca
         return "OUTROS"
     
     def _build_alias_map(self):
         alias_map = {}
-        self.inactive_units = [] # Nova lista para controle
+        self.inactive_units = [] 
 
-        for _, data in self.unit_map.items():
-            canonical = data["nome_oficial"]
+        # Percorre cada Marca no JSON
+        for marca, info in self.unit_map.items():
+            # Entra na lista de unidades de cada marca
+            unidades = info.get("unidades", [])
             
-            # Se a unidade for inativa, guardamos o nome oficial dela
-            if data.get("status") == "inativo":
-                self.inactive_units.append(canonical)
+            for unidade in unidades:
+                canonical = unidade["nome_oficial"]
+                status = unidade.get("status", "ativo")
                 
-            alias_map[self._normalize_key(canonical)] = canonical
-            for alias in data["aliases"]:
-                alias_map[self._normalize_key(alias)] = canonical
+                # Se a unidade for inativa, guardamos o nome oficial para filtrar no final
+                if status == "inativo":
+                    self.inactive_units.append(canonical)
+                    
+                # Mapeia o nome oficial para ele mesmo
+                alias_map[self._normalize_key(canonical)] = canonical
+                
+                # Mapeia todos os apelidos (aliases) para o nome oficial
+                for alias in unidade.get("aliases", []):
+                    alias_map[self._normalize_key(alias)] = canonical
+                    
         return alias_map
 
     def normaliza_nome_marca(self, name):
