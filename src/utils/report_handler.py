@@ -10,7 +10,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 class GeradorRelatorio:
     """
     Classe responsável pela formatação complexa do Excel (Cores, Ordenação, Gráficos).
-    Baseada no código original do report.py.
     """
     def __init__(self, business_config, aba_alvo):
         self.business_config = business_config

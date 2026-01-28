@@ -2,7 +2,11 @@ import customtkinter as ctk
 from PIL import Image
 import os
 import pandas as pd
+import threading
+from tkinter import messagebox
 from datetime import datetime
+
+# Seus módulos existentes
 from engine import FunnelEngine 
 from src.ui.components.info_card import KPICard, BrandAccordionCard
 from src.utils.report_handler import ReportHandler
@@ -12,19 +16,18 @@ class MonitoringScreen(ctk.CTkFrame):
         super().__init__(parent, fg_color="#f5f6fa")
         self.controller = controller
         
-        # Inicializa SEU Motor (que já conecta no DB e carrega JSONs)
+        # Inicializa o Motor
         self.engine = FunnelEngine() 
-        
         self.df = None
         
-        # Layout
+        # Layout principal
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         self.setup_sidebar()
         self.setup_main_area()
         
-        # Carrega dados
+        # Carrega dados iniciais
         self.run_query()
 
     def setup_sidebar(self):
@@ -79,12 +82,9 @@ class MonitoringScreen(ctk.CTkFrame):
         self.populate_filters()
 
     def populate_filters(self):
-        """Usa o unit_map do FunnelEngine para preencher os combos."""
         try:
-            # Pega as chaves do dicionário de normalização do seu Engine
             brands = sorted(list(self.engine.unit_map.keys()))
             unique_brands = ["Todas as Marcas"] + brands
-            
             self.cmb_marca.configure(values=unique_brands)
             self.cmb_marca.set("Todas as Marcas")
             self.cmb_filial.configure(values=["Todas as Filiais"])
@@ -97,15 +97,11 @@ class MonitoringScreen(ctk.CTkFrame):
             self.cmb_filial.set("Todas as Filiais")
             return
 
-        # Pega as filiais daquela marca específica direto do JSON carregado no Engine
         try:
             brand_info = self.engine.unit_map.get(choice, {})
             units_list = brand_info.get("unidades", [])
-            
-            # Extrai apenas os nomes oficiais
             unit_names = [u["nome_oficial"] for u in units_list]
             relevant_units = ["Todas as Filiais"] + sorted(unit_names)
-            
             self.cmb_filial.configure(values=relevant_units)
             self.cmb_filial.set("Todas as Filiais")
         except:
@@ -117,30 +113,75 @@ class MonitoringScreen(ctk.CTkFrame):
         self.main_frame.grid_rowconfigure(2, weight=1)
         self.main_frame.grid_columnconfigure(0, weight=1)
 
-        # Header
+        # --- HEADER (Com o novo Botão Excel) ---
         header = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         header.grid(row=0, column=0, sticky="ew", pady=(0, 20))
-        ctk.CTkLabel(header, text="Dashboard Comercial", font=("Roboto", 28, "bold"), text_color="#2c3e50").pack(side="left")
-        ctk.CTkLabel(header, text="Visão consolidada de Leads e Matrículas", font=("Roboto", 14), text_color="#7f8c8d").pack(side="left", padx=15, pady=(10, 0))
+        
+        # Títulos (Esquerda)
+        title_box = ctk.CTkFrame(header, fg_color="transparent")
+        title_box.pack(side="left")
+        ctk.CTkLabel(title_box, text="Dashboard Comercial", font=("Roboto", 28, "bold"), text_color="#2c3e50").pack(anchor="w")
+        ctk.CTkLabel(title_box, text="Visão consolidada de Leads e Matrículas", font=("Roboto", 14), text_color="#7f8c8d").pack(anchor="w", pady=(5, 0))
 
-        # KPIs
+        # === NOVO: Botão de Exportação Geral (Direita) ===
+        self.btn_export_all = ctk.CTkButton(
+            header, 
+            text="Relatório Completo XLS 📊",
+            font=("Roboto", 12, "bold"),
+            fg_color="#107C41",  # Verde Excel
+            hover_color="#0E5C2F",
+            height=35,
+            command=self.exportar_tudo_thread
+        )
+        self.btn_export_all.pack(side="right", anchor="center", padx=10)
+        # =================================================
+
+        # KPIs Frame
         self.kpi_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         self.kpi_frame.grid(row=1, column=0, sticky="ew", pady=(0, 20))
         for i in range(4): self.kpi_frame.grid_columnconfigure(i, weight=1)
 
-        # Cards (Scroll)
+        # Cards Scrollable Area
         self.scroll_cards = ctk.CTkScrollableFrame(self.main_frame, fg_color="transparent")
         self.scroll_cards.grid(row=2, column=0, sticky="nsew")
 
-    def run_query(self):
-        """Chama seu FunnelEngine para processar tudo."""
-        # A data é lida da interface, mas como o engine não foi alterado, 
-        # não passamos o argumento para evitar o erro TypeError.
-        # date_filter = self.entry_date.get() 
-        
-        # CORREÇÃO: Chamada sem argumentos para compatibilidade com o engine atual
-        self.df = self.engine.generate_full_report()
+    # --- Lógica de Exportação ---
+    def exportar_tudo_thread(self):
+        """Inicia o processo em background para não travar a tela."""
+        if self.df is None or self.df.empty:
+            messagebox.showwarning("Aviso", "Não há dados carregados para exportar.")
+            return
 
+        self.btn_export_all.configure(state="disabled", text="Gerando...")
+        threading.Thread(target=self._processar_exportacao_geral).start()
+
+    def _processar_exportacao_geral(self):
+        """Chama o ReportHandler."""
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+            nome_arquivo = f"Relatorio_Consolidado_Geral_{timestamp}.xlsx"
+            caminho = os.path.abspath(nome_arquivo)
+            
+            # Chama seu handler original
+            sucesso = ReportHandler.gerar_excel_consolidado(self.df, caminho)
+            
+            # Retorna à thread principal (UI)
+            self.after(0, lambda: self._finalizar_exportacao(sucesso, caminho))
+        except Exception as e:
+            print(f"Erro exportacao: {e}")
+            self.after(0, lambda: self._finalizar_exportacao(False, str(e)))
+
+    def _finalizar_exportacao(self, sucesso, msg):
+        self.btn_export_all.configure(state="normal", text="Relatório Completo XLS 📊")
+        if sucesso:
+            messagebox.showinfo("Sucesso", f"Relatório salvo em:\n{msg}")
+        else:
+            messagebox.showerror("Erro", f"Falha ao gerar relatório: {msg}")
+
+    # --- Métodos de Dados ---
+    def run_query(self):
+        # Chama a engine sem argumentos (compatibilidade com engine.py)
+        self.df = self.engine.generate_full_report()
         self.update_kpis()
         self.render_accordion_cards()
 
@@ -149,7 +190,6 @@ class MonitoringScreen(ctk.CTkFrame):
 
         if self.df is None or self.df.empty: return
 
-        # Totais simples do DataFrame retornado pelo Engine
         total_leads = int(self.df['Leads'].sum())
         total_agend = int(self.df['Visita Agendada'].sum())
         total_visit = int(self.df['Visita Realizada'].sum())
@@ -173,15 +213,12 @@ class MonitoringScreen(ctk.CTkFrame):
             ctk.CTkLabel(self.scroll_cards, text="Nenhum dado encontrado.", text_color="#7f8c8d").pack(pady=20)
             return
 
-        # --- FILTRAGEM VISUAL ---
-        # O Engine traz tudo, a UI filtra o que mostra
         filtered_df = self.df.copy()
         
         selected_brand = self.marca_var.get()
         selected_branch = self.filial_var.get()
 
         if selected_brand != "Todas as Marcas":
-            # Usa a função do Engine para descobrir a marca de cada linha
             filtered_df['temp_marca'] = filtered_df['unidade'].apply(self.engine.extract_marca)
             filtered_df = filtered_df[filtered_df['temp_marca'] == selected_brand]
         
@@ -192,14 +229,11 @@ class MonitoringScreen(ctk.CTkFrame):
             ctk.CTkLabel(self.scroll_cards, text="Sem dados para este filtro.", text_color="#7f8c8d").pack(pady=20)
             return
 
-        # --- AGRUPAMENTO ---
         grouped_data = {}
         records = filtered_df.to_dict('records')
         
         for row in records:
             brand = self.engine.extract_marca(row['unidade'])
-            
-            # Filtro opcional de "OUTROS"
             if brand == "OUTROS": continue 
 
             if brand not in grouped_data: grouped_data[brand] = []
@@ -207,7 +241,6 @@ class MonitoringScreen(ctk.CTkFrame):
 
         for brand in sorted(grouped_data.keys()):
             rows = grouped_data[brand]
-            
             brand_totals = {
                 'Matricula': sum(r.get('Matricula', 0) for r in rows),
                 'Leads': sum(r.get('Leads', 0) for r in rows)
