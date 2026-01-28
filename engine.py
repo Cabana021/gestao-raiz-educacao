@@ -12,14 +12,14 @@ class FunnelEngine:
         self.engine = get_db_engine()
         self.alias_to_canonical = self._build_alias_map()
 
-        # Ordem hierárquica do funil 
-        self.stage_order = {
-            self.config["LEADS"]: 1,
-            self.config["LEADS_CONTATADOS"]: 2,
-            self.config["AGENDAMENTO_REALIZADO"]: 3,
-            self.config["VISITA_REALIZADA"]: 4,
-            self.config["MATRICULADO_TOTAL"]: 5
-        }
+        # Colunas obrigatórias para a UI não quebrar
+        self.required_ui_columns = [
+            "unidade",
+            # Funil Acumulado
+            "Leads", "Contato Produtivo", "Visita Agendada", "Visita Realizada", "Matricula",
+            # Cohort (Estoque)
+            "Inertes em Lead", "Aguardando Agendamento", "Aguardando Visita", "Em Negociação", "Finalizados (Matrícula)"
+        ]
       
     def _load_json(self, path):
         try:
@@ -34,14 +34,12 @@ class FunnelEngine:
         return ''.join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c))
 
     def _normalize_key(self, text):
+        if not isinstance(text, str): return str(text)
         return self.remove_accents(text.upper().strip())
 
     def extract_marca(self, unidade):
-        """
-        Retorna a marca (chave do normalization.json) a partir do nome oficial da unidade
-        """
+        """Retorna a marca a partir do nome da unidade para filtros da UI."""
         unidade_norm = self._normalize_key(unidade)
-
         for marca, info in self.unit_map.items():
             for unidade_data in info.get("unidades", []):
                 canonical = self._normalize_key(unidade_data["nome_oficial"])
@@ -53,44 +51,34 @@ class FunnelEngine:
         alias_map = {}
         self.inactive_units = [] 
 
-        # Percorre cada Marca no JSON
         for marca, info in self.unit_map.items():
-            # Entra na lista de unidades de cada marca
             unidades = info.get("unidades", [])
-            
             for unidade in unidades:
                 canonical = unidade["nome_oficial"]
                 status = unidade.get("status", "ativo")
                 
-                # Se a unidade for inativa, guardamos o nome oficial para filtrar no final
                 if status == "inativo":
                     self.inactive_units.append(canonical)
                     
-                # Mapeia o nome oficial para ele mesmo
+                # Mapeia nome oficial e aliases
                 alias_map[self._normalize_key(canonical)] = canonical
-                
-                # Mapeia todos os apelidos (aliases) para o nome oficial
                 for alias in unidade.get("aliases", []):
                     alias_map[self._normalize_key(alias)] = canonical
                     
         return alias_map
 
     def normaliza_nome_marca(self, name):
-        # 1. Trata nulos, vazios e strings de erro
         name_str = str(name).strip().lower()
         if not name or name_str in ['nan', 'none', '', 'null']:
-            return self.unit_map.get("DESCONHECIDO", {}).get("nome_oficial", "Leads Raiz Sem Unidades")
+            return "Leads Sem Unidade Identificada"
 
-        # 2. Normaliza para buscar no dicionário de aliases
         key = self._normalize_key(str(name))
-        
-        # 3. Busca o nome canônico. 
         return self.alias_to_canonical.get(key, name)
 
     def get_crm_data(self):
-        print("[CRM] Extraindo e processando funil de vendas (2026)...")
-
-        # 1. Filtro fixo para 2026 (ou via config se preferir manter dinâmico)
+        print("[CRM] Extraindo e processando funil de vendas...")
+        
+        # Filtro de data (Pode virar parâmetro dinâmico futuramente)
         data_inicio = '2025-06-01' 
         
         query = f"""
@@ -103,14 +91,18 @@ class FunnelEngine:
 
         try:
             df = pd.read_sql(query, self.engine)
-            if df.empty:
-                return pd.DataFrame()
+            if df.empty: return pd.DataFrame()
 
-            # 1. Mapeamento para COHORT (Onde o lead está parado hoje)
+            # Normaliza unidade antes de agrupar
+            df["unidade"] = df["unidade"].apply(self.normaliza_nome_marca)
+
+            # --- 1. Lógica de COHORT (Onde o lead está PARADO HOJE) ---
+            # Mapeia IDs do Pipeline para Nomes Legíveis da UI
             stage_labels = {v: k for k, v in self.config.items()}
             df["status_atual"] = df["hs_pipeline_stage"].map(stage_labels).fillna("OUTROS")
             
-            cohort_cols = {
+            # De-Para dos nomes internos para os nomes que a UI/Excel esperam
+            cohort_cols_map = {
                 "LEADS": "Inertes em Lead",
                 "LEADS_CONTATADOS": "Aguardando Agendamento",
                 "AGENDAMENTO_REALIZADO": "Aguardando Visita",
@@ -119,41 +111,43 @@ class FunnelEngine:
             }
             
             cohort_counts = df.groupby(["unidade", "status_atual"]).size().unstack(fill_value=0)
-            cohort_counts = cohort_counts.rename(columns=cohort_cols)
+            cohort_counts = cohort_counts.rename(columns=cohort_cols_map)
 
-            # 2. Lógica para FUNIL ACUMULADO
-            # Definimos o peso de cada etapa para soma cumulativa
+            # --- 2. Lógica de FUNIL ACUMULADO (Histórico de conversão) ---
+            # Define hierarquia: Quem está na etapa 5, passou pela 4, 3, 2, 1.
             weights = {
-                "1018380105": 1, # LEAD
-                "1018380106": 2, # CONTATO
-                "1022335280": 3, # AGENDADO
-                "1018314554": 4, # VISITA
-                "1111696774": 5  # MATRÍCULA
+                self.config.get("LEADS", "1018380105"): 1,
+                self.config.get("LEADS_CONTATADOS", "1018380106"): 2,
+                self.config.get("AGENDAMENTO_REALIZADO", "1022335280"): 3,
+                self.config.get("VISITA_REALIZADA", "1018314554"): 4,
+                self.config.get("MATRICULADO_TOTAL", "1111696774"): 5
             }
+            
             df["rank"] = df["hs_pipeline_stage"].map(weights).fillna(0)
 
-            # Se o rank é 5 (Matrícula), ele soma +1 em todas as etapas anteriores
-            df["Leads"] = 1
+            # Cria colunas booleanas para soma
+            df["Leads"] = 1 # Todo mundo é lead
             df["Contato Produtivo"] = (df["rank"] >= 2).astype(int)
             df["Visita Agendada"] = (df["rank"] >= 3).astype(int)
             df["Visita Realizada"] = (df["rank"] >= 4).astype(int)
-            df["Matrícula"] = (df["rank"] >= 5).astype(int)
+            # Matrícula no CRM é indicativo, mas usaremos ERP como fonte da verdade depois
+            df["Matrícula_CRM"] = (df["rank"] >= 5).astype(int) 
 
-            res_acumulado = df.groupby("unidade")[[
-                "Leads", "Contato Produtivo", "Visita Agendada", "Visita Realizada", "Matrícula"
-            ]].sum().reset_index()
+            cols_accum = ["Leads", "Contato Produtivo", "Visita Agendada", "Visita Realizada"]
+            res_acumulado = df.groupby("unidade")[cols_accum].sum().reset_index()
             
-            # Merge Final: Funil + Cohort
-            return pd.merge(res_acumulado, cohort_counts, on="unidade", how="left").fillna(0)
+            # Merge: Funil Acumulado + Snapshot de Cohort
+            df_merged = pd.merge(res_acumulado, cohort_counts, on="unidade", how="left").fillna(0)
+            
+            return df_merged
 
         except Exception as e:
             print(f"[CRM] Erro: {e}")
             return pd.DataFrame()
 
     def get_erp_data(self):
-        print("[ERP] Extraindo matrículas confirmadas e pré-matrículas (2025-2026)...")
+        print("[ERP] Extraindo matrículas confirmadas...")
         
-        # Query ajustada para incluir 2025/2026, status pré-matriculado e validade 'S'
         query = """
         SELECT 
             T1.FILIAL AS unidade, 
@@ -169,17 +163,11 @@ class FunnelEngine:
         GROUP BY T1.FILIAL
         """
 
-
         try:
             df = pd.read_sql(query, self.engine)
-            if df.empty:
-                return pd.DataFrame()
+            if df.empty: return pd.DataFrame()
 
-            # Normaliza para garantir que o "merge" com o CRM funcione
             df["unidade"] = df["unidade"].apply(self.normaliza_nome_marca)
-            
-            # Como o GROUP BY já foi feito no SQL, aqui só agrupamos se a normalização
-            # tiver juntado duas filiais (ex: 'Unidade Centro' e 'Centro' viraram a mesma)
             return df.groupby("unidade", as_index=False)["Matricula"].sum()
 
         except Exception as e:
@@ -193,46 +181,36 @@ class FunnelEngine:
         if df_crm.empty and df_erp.empty:
             return None
 
+        # Merge CRM + ERP (ERP manda no número final de matrículas)
         df_final = pd.merge(df_crm, df_erp, on="unidade", how="outer").fillna(0)
 
-        # Remove marcas inativas
+        # Filtra inativas
         df_final = df_final[~df_final["unidade"].isin(self.inactive_units)]
         df_final = df_final[df_final["unidade"].str.strip() != ""]
 
-        cols = [
-            "Leads",
-            "Contato Produtivo",
-            "Visita Agendada",
-            "Visita Realizada",
-            "Matricula"
-        ]
-        df_final[cols] = df_final[cols].astype(int)
+        # Garante que todas as colunas necessárias para a UI existem (mesmo que zeradas)
+        # Isso corrige o bug onde o gráfico de pizza quebra se não houver dados em uma etapa
+        for col in self.required_ui_columns:
+            if col not in df_final.columns:
+                df_final[col] = 0
 
-        # Remove marcas irrelevantes
+        # Força tipos inteiros para visualização limpa
+        numeric_cols = df_final.select_dtypes(include=['float', 'int']).columns
+        df_final[numeric_cols] = df_final[numeric_cols].astype(int)
+
+        # Remove linhas irrelevantes (sem lead e sem matrícula)
         df_final = df_final[
             (df_final["Leads"] > 0) |
             (df_final["Matricula"] > 0)
         ]
 
         df_final = df_final.sort_values("Matricula", ascending=False)
-
-        print("\nFUNIL DE CAPTAÇÃO CONSOLIDADO (CRM + ERP)")
-        print(df_final.to_string(index=False))
+        
+        print(f"\n[ENGINE] Dados gerados: {len(df_final)} linhas.")
         return df_final
-
-    def quick_query(self, query, limit=None):
-        try:
-            df = pd.read_sql(query, self.engine)
-            if limit: df = df.head(limit)
-            print(df.to_string(index=False))
-            return df
-        except Exception as e:
-            print(f"Erro: {e}"); return pd.DataFrame()
 
 if __name__ == "__main__":
     motor = FunnelEngine()
-    df_funil = motor.generate_full_report()
-
-    if df_funil is not None:
-        df_funil.to_excel("funil_consolidado.xlsx", index=False)
-        print("\nArquivo Excel gerado: funil_consolidado.xlsx")
+    df = motor.generate_full_report()
+    if df is not None:
+        print(df.head().to_string())
