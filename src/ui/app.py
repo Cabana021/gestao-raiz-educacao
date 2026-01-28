@@ -4,7 +4,6 @@ from PIL import Image
 from src.ui.screens.funil_screen import MonitoringScreen
 
 class GradientFrame(ctk.CTkFrame):
-    """Frame customizado onde o Canvas fica em background absoluto via place()."""
     def __init__(self, parent, color1, color2, **kwargs):
         super().__init__(parent, **kwargs)
         self.color1 = color1
@@ -17,100 +16,73 @@ class GradientFrame(ctk.CTkFrame):
         self.canvas.delete("gradient")
         width = self.winfo_width()
         height = self.winfo_height()
+        if width < 1 or height < 1: return
         
-        if width < 1 or height < 1: return # Evita erros na inicialização
-
-        steps = 100
+        # Simples gradiente vertical
         r1, g1, b1 = self.winfo_rgb(self.color1)
         r2, g2, b2 = self.winfo_rgb(self.color2)
-        
-        # Converter 16-bit para 8-bit
         r1, g1, b1 = r1 >> 8, g1 >> 8, b1 >> 8
         r2, g2, b2 = r2 >> 8, g2 >> 8, b2 >> 8
-
-        for i in range(steps):
-            r = int(r1 + (r2 - r1) * i / steps)
-            g = int(g1 + (g2 - g1) * i / steps)
-            b = int(b1 + (b2 - b1) * i / steps)
-            color = f'#{r:02x}{g:02x}{b:02x}'
-            
-            y0 = int(i * height / steps)
-            y1 = int((i + 1) * height / steps)
-            
-            # width + 1 garante que preencha a direita sem gaps no redimensionamento
-            self.canvas.create_rectangle(0, y0, width+1, y1 + 1, fill=color, outline=color, tags="gradient")
+        
+        limit = height
+        for i in range(limit):
+            nr = int(r1 + (r2 - r1) * i / limit)
+            ng = int(g1 + (g2 - g1) * i / limit)
+            nb = int(b1 + (b2 - b1) * i / limit)
+            color = f'#{nr:02x}{ng:02x}{nb:02x}'
+            self.canvas.create_line(0, i, width, i, fill=color)
 
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         
-        self.title("Sistema de Monitoramento - Raiz Educação")
-        self.geometry("1280x720")
-        
+        self.title("Raiz Educação - Sistema de Monitoramento")
+        self.geometry("1366x768")
         ctk.set_appearance_mode("Light")
-        ctk.set_default_color_theme("blue")
         
-        try:
-            icon_path = "assets/raizeducacao_logo.ico"
-            if os.path.exists(icon_path):
-                self.iconbitmap(icon_path)
-        except:
-            pass
-            
-        # 1. Background (Root Container)
-        self.bg_frame = GradientFrame(self, color1="#fff3e0", color2="#e3f2fd") 
+        # --- BACKGROUND ---
+        # Usando cores da Raiz (Laranja suave e Azul suave)
+        self.bg_frame = GradientFrame(self, color1="#ffffff", color2="#ecf0f1")
         self.bg_frame.pack(fill="both", expand=True)
-        
-        # 2. Top Bar
-        self.top_bar = ctk.CTkFrame(self.bg_frame, height=70, fg_color="transparent")
-        self.top_bar.pack(side="top", fill="x", padx=20, pady=(10, 5))
-        
-        try:
-            logo_path = "assets/raizeducacao_logo.png"
-            if os.path.exists(logo_path):
-                pil_img = Image.open(logo_path)
-                w, h = pil_img.size
-                ratio = 50 / h
-                new_size = (int(w * ratio), 50)
-                
-                logo_img = ctk.CTkImage(pil_img, size=new_size)
-                self.lbl_logo = ctk.CTkLabel(self.top_bar, text="", image=logo_img)
-                self.lbl_logo.pack(side="left")
-            else:
-                ctk.CTkLabel(self.top_bar, text="RAIZ EDUCAÇÃO", 
-                             font=("Roboto", 24, "bold"), text_color="#e67e22").pack(side="left")
-        except:
-            pass
 
-        # 3. Content Wrapper
-        self.content_wrapper = ctk.CTkFrame(
-            self.bg_frame,
-            fg_color="#f5f6fa", 
-            corner_radius=15
-        )
-        self.content_wrapper.pack(
-            side="top",
-            fill="both",
-            expand=True,
-            padx=20,
-            pady=(5, 20) # Margem inferior
-        )
+        # --- TOP BAR (Transparente e Clean) ---
+        self.top_bar = ctk.CTkFrame(self.bg_frame, height=60, fg_color="transparent")
+        self.top_bar.pack(side="top", fill="x", padx=30, pady=(15, 5))
+        
+        # Logo Logic
+        logo_path = "assets/raizeducacao_logo.png"
+        if os.path.exists(logo_path):
+            pil_img = Image.open(logo_path)
+            # Mantém aspect ratio fixando altura em 40px
+            ratio = 40 / pil_img.height
+            new_w = int(pil_img.width * ratio)
+            logo_img = ctk.CTkImage(light_image=pil_img, size=(new_w, 40))
+            
+            # Label sem texto, apenas imagem, bg transparente
+            lbl_logo = ctk.CTkLabel(self.top_bar, text="", image=logo_img)
+            lbl_logo.pack(side="left")
+        else:
+            # Fallback textual estiloso
+            ctk.CTkLabel(self.top_bar, text="RAIZ", font=("Roboto", 24, "bold"), text_color="#e67e22").pack(side="left")
+            ctk.CTkLabel(self.top_bar, text="EDUCAÇÃO", font=("Roboto", 24), text_color="#2c3e50").pack(side="left", padx=5)
 
-        # Configuração do Grid para a tela filha ocupar tudo
+        # Informações de Usuário/Data no canto direito (Opcional, dá um toque profissional)
+        ctk.CTkLabel(self.top_bar, text="Dashboard Executivo", font=("Roboto", 12), text_color="#7f8c8d").pack(side="right")
+
+        # --- CONTENT WRAPPER ---
+        # Frame branco flutuante com sombra suave (simulada)
+        self.content_wrapper = ctk.CTkFrame(self.bg_frame, fg_color="#f4f6f8", corner_radius=20)
+        self.content_wrapper.pack(fill="both", expand=True, padx=30, pady=(10, 30))
+        
+        # Grid layout para telas
         self.content_wrapper.grid_rowconfigure(0, weight=1)
         self.content_wrapper.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        
-        # Instancia a tela
         frame = MonitoringScreen(parent=self.content_wrapper, controller=self)
         self.frames["MonitoringScreen"] = frame
-        frame.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
+        frame.grid(row=0, column=0, sticky="nsew")
         
-        self.show_frame("MonitoringScreen")
-        
-    def show_frame(self, page_name):
-        frame = self.frames[page_name]
         frame.tkraise()
 
 if __name__ == "__main__":

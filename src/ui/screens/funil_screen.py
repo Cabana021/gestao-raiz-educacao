@@ -1,231 +1,233 @@
 import customtkinter as ctk
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from engine import FunnelEngine
+from PIL import Image
+import os
 import pandas as pd
-import threading
+from datetime import datetime
+from engine import FunnelEngine 
+from src.ui.components.info_card import KPICard, BrandAccordionCard
+from src.utils.report_handler import ReportHandler
 
 class MonitoringScreen(ctk.CTkFrame):
     def __init__(self, parent, controller):
-        super().__init__(parent, fg_color="transparent", corner_radius=15) 
-        self.engine = FunnelEngine()
-        self.full_df = None
+        super().__init__(parent, fg_color="#f5f6fa")
         self.controller = controller
-
-        # Layout Principal (Grid) 
-        # Coluna 0: Sidebar (Fixo)
-        # Coluna 1: Conteúdo (Expansível)
-        self.grid_columnconfigure(0, weight=0, minsize=320) 
+        
+        # Inicializa SEU Motor (que já conecta no DB e carrega JSONs)
+        self.engine = FunnelEngine() 
+        
+        self.df = None
+        
+        # Layout
         self.grid_columnconfigure(1, weight=1)
-        
-        # Linha 0: Header (Botão) 
-        # Linha 1: ScrollFrame
-        self.grid_rowconfigure(0, weight=0) 
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-        self.setup_sidebar_filters()
+        self.setup_sidebar()
         self.setup_main_area()
+        
+        # Carrega dados
+        self.run_query()
 
-    def setup_sidebar_filters(self):
-        self.sidebar = ctk.CTkFrame(self, fg_color="#ffffff", corner_radius=15)
-        self.sidebar.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=(0, 10), pady=0)
-        
-        # Título Sidebar
-        lbl_title = ctk.CTkLabel(self.sidebar, text="ANÁLISE DE PIPELINE", 
-                                 text_color="#2c3e50", font=("Roboto", 16, "bold"))
-        lbl_title.pack(pady=(25, 15))
-        
-        # Filtros
-        self.combo_marca = ctk.CTkComboBox(self.sidebar, values=["Todas"], command=self.apply_filters,
-                                           fg_color="#ecf0f1", text_color="#2c3e50", 
-                                           button_color="#2980b9", button_hover_color="#3498db",
-                                           dropdown_fg_color="#ffffff", dropdown_text_color="#2c3e50",
-                                           width=280)
-        self.combo_marca.pack(pady=5, padx=20)
-        
-        self.combo_unidade = ctk.CTkComboBox(self.sidebar, values=["Todas"], command=self.apply_filters,
-                                             fg_color="#ecf0f1", text_color="#2c3e50", 
-                                             button_color="#2980b9", button_hover_color="#3498db",
-                                             dropdown_fg_color="#ffffff", dropdown_text_color="#2c3e50",
-                                             width=280)
-        self.combo_unidade.pack(pady=5, padx=20)
+    def setup_sidebar(self):
+        self.sidebar = ctk.CTkFrame(self, fg_color="#ffffff", corner_radius=0, width=280)
+        self.sidebar.grid(row=0, column=0, sticky="nsew")
+        self.sidebar.grid_propagate(False)
 
-        # Container dos Gráficos (Expande para preencher o resto da sidebar)
-        self.chart_container = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        self.chart_container.pack(fill="both", expand=True, pady=(20, 10), padx=10)
+        # LOGO
+        self.logo_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        self.logo_frame.pack(pady=(30, 20), padx=20, fill="x")
+        try:
+            logo_path = "assets/logo.png"
+            if os.path.exists(logo_path):
+                pil_logo = Image.open(logo_path)
+                w, h = pil_logo.size
+                ratio = h / w
+                new_w = 200
+                new_h = int(new_w * ratio)
+                logo_img = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(new_w, new_h))
+                ctk.CTkLabel(self.logo_frame, image=logo_img, text="").pack(anchor="w")
+            else:
+                ctk.CTkLabel(self.logo_frame, text="DASHBOARD", font=("Arial", 20, "bold")).pack(anchor="w")
+        except:
+            pass
+
+        ctk.CTkFrame(self.sidebar, height=2, fg_color="#f1f2f6").pack(fill="x", padx=20, pady=10)
+
+        # FILTROS
+        ctk.CTkLabel(self.sidebar, text="FILTROS", font=("Roboto", 14, "bold"), text_color="#95a5a6").pack(anchor="w", padx=20, pady=(10, 5))
+
+        # Data
+        self.date_var = ctk.StringVar(value=datetime.now().strftime("%d/%m/%Y"))
+        self.entry_date = ctk.CTkEntry(self.sidebar, textvariable=self.date_var, placeholder_text="DD/MM/AAAA")
+        self.entry_date.pack(padx=20, pady=5, fill="x")
+
+        # Marca
+        self.marca_var = ctk.StringVar(value="Todas as Marcas")
+        self.cmb_marca = ctk.CTkComboBox(self.sidebar, variable=self.marca_var, command=self.on_brand_change)
+        self.cmb_marca.pack(padx=20, pady=10, fill="x")
+
+        # Filial
+        self.filial_var = ctk.StringVar(value="Todas as Filiais")
+        self.cmb_filial = ctk.CTkComboBox(self.sidebar, variable=self.filial_var)
+        self.cmb_filial.pack(padx=20, pady=10, fill="x")
+
+        # Botão Atualizar
+        self.btn_refresh = ctk.CTkButton(self.sidebar, text="Aplicar Filtros", fg_color="#2980b9", 
+                                         height=40, font=("Roboto", 12, "bold"),
+                                         command=self.run_query)
+        self.btn_refresh.pack(padx=20, pady=30, fill="x")
+
+        self.populate_filters()
+
+    def populate_filters(self):
+        """Usa o unit_map do FunnelEngine para preencher os combos."""
+        try:
+            # Pega as chaves do dicionário de normalização do seu Engine
+            brands = sorted(list(self.engine.unit_map.keys()))
+            unique_brands = ["Todas as Marcas"] + brands
+            
+            self.cmb_marca.configure(values=unique_brands)
+            self.cmb_marca.set("Todas as Marcas")
+            self.cmb_filial.configure(values=["Todas as Filiais"])
+        except Exception as e:
+            print(f"Erro filtros: {e}")
+
+    def on_brand_change(self, choice):
+        if choice == "Todas as Marcas":
+            self.cmb_filial.configure(values=["Todas as Filiais"])
+            self.cmb_filial.set("Todas as Filiais")
+            return
+
+        # Pega as filiais daquela marca específica direto do JSON carregado no Engine
+        try:
+            brand_info = self.engine.unit_map.get(choice, {})
+            units_list = brand_info.get("unidades", [])
+            
+            # Extrai apenas os nomes oficiais
+            unit_names = [u["nome_oficial"] for u in units_list]
+            relevant_units = ["Todas as Filiais"] + sorted(unit_names)
+            
+            self.cmb_filial.configure(values=relevant_units)
+            self.cmb_filial.set("Todas as Filiais")
+        except:
+            pass
 
     def setup_main_area(self):
-        # Header (Botão Consultar) 
-        header = ctk.CTkFrame(self, fg_color="transparent", height=50)
-        header.grid(row=0, column=1, sticky="ew", padx=0, pady=(15, 10))
-        header.pack_propagate(False) 
-        
-        self.btn_consult = ctk.CTkButton(header, text="Consultar DB", 
-                                         font=("Roboto", 12, "bold"),
-                                         fg_color="#e67e22", hover_color="#d35400",
-                                         height=36, width=150,
-                                         command=self.start_consultation_thread)
-        self.btn_consult.pack(side="right", padx=10)
+        self.main_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_frame.grid(row=0, column=1, sticky="nsew", padx=30, pady=30)
+        self.main_frame.grid_rowconfigure(2, weight=1)
+        self.main_frame.grid_columnconfigure(0, weight=1)
 
-        # Área Scrollável 
-        self.scroll_frame = ctk.CTkScrollableFrame(self, label_text="Unidades Filtradas", 
-                                                   label_text_color="#2c3e50",
-                                                   label_font=("Roboto", 14, "bold"),
-                                                   fg_color="transparent") 
-        self.scroll_frame.grid(row=1, column=1, sticky="nsew", padx=0, pady=(0, 10))
-        
-        # Ajuste de velocidade do scroll se necessário
-        # self.scroll_frame._scrollbar.configure(width=16) 
+        # Header
+        header = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        header.grid(row=0, column=0, sticky="ew", pady=(0, 20))
+        ctk.CTkLabel(header, text="Dashboard Comercial", font=("Roboto", 28, "bold"), text_color="#2c3e50").pack(side="left")
+        ctk.CTkLabel(header, text="Visão consolidada de Leads e Matrículas", font=("Roboto", 14), text_color="#7f8c8d").pack(side="left", padx=15, pady=(10, 0))
 
-    def start_consultation_thread(self):
-        self.btn_consult.configure(state="disabled", text="Processando...")
-        thread = threading.Thread(target=self.run_query, daemon=True)
-        thread.start()
+        # KPIs
+        self.kpi_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.kpi_frame.grid(row=1, column=0, sticky="ew", pady=(0, 20))
+        for i in range(4): self.kpi_frame.grid_columnconfigure(i, weight=1)
+
+        # Cards (Scroll)
+        self.scroll_cards = ctk.CTkScrollableFrame(self.main_frame, fg_color="transparent")
+        self.scroll_cards.grid(row=2, column=0, sticky="nsew")
 
     def run_query(self):
-        try:
-            # Assumindo que engine já trata conexão
-            df = self.engine.generate_full_report()
-            self.after(0, self.update_ui_with_data, df)
-        except Exception as e:
-            print(f"Erro na consulta: {e}")
-            self.after(0, lambda: self.btn_consult.configure(state="normal", text="Consultar DB"))
-
-    def update_ui_with_data(self, df):
-        if df is not None and not df.empty:
-            self.full_df = df
-            
-            # Atualiza combos (Lógica segura para pandas)
-            try:
-                marcas_list = df['unidade'].apply(self.engine.extract_marca).unique().tolist()
-                marcas = ["Todas"] + sorted([str(x) for x in marcas_list])
-            except:
-                marcas = ["Todas"]
-
-            try:
-                unid_list = df['unidade'].unique().tolist()
-                unidades = ["Todas"] + sorted([str(x) for x in unid_list])
-            except:
-                unidades = ["Todas"]
-
-            self.combo_marca.configure(values=marcas)
-            self.combo_marca.set("Todas")
-            
-            self.combo_unidade.configure(values=unidades)
-            self.combo_unidade.set("Todas")
-            
-            self.apply_filters()
-        else:
-            print("Nenhum dado retornado.")
+        """Chama seu FunnelEngine para processar tudo."""
+        # A data é lida da interface, mas como o engine não foi alterado, 
+        # não passamos o argumento para evitar o erro TypeError.
+        # date_filter = self.entry_date.get() 
         
-        self.btn_consult.configure(state="normal", text="Consultar DB")
+        # CORREÇÃO: Chamada sem argumentos para compatibilidade com o engine atual
+        self.df = self.engine.generate_full_report()
 
-    def plot_funnels(self, data):
-        plt.close('all') 
-        for widget in self.chart_container.winfo_children():
-            widget.destroy()
+        self.update_kpis()
+        self.render_accordion_cards()
 
-        plt.style.use('default') 
-        
-        # DPI ajustado para telas comuns
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(3.2, 5.5), dpi=100)
-        fig.patch.set_facecolor('none') 
-        fig.patch.set_alpha(0.0)
+    def update_kpis(self):
+        for w in self.kpi_frame.winfo_children(): w.destroy()
 
-        text_color = "#2c3e50"
-        bar_color = "#2980b9"
+        if self.df is None or self.df.empty: return
 
-        # Gráfico 1: Barras 
-        etapas = ["Leads", "Contatos", "Agend.", "Visitas", "Matric."]
-        valores = [
-            data.get('Leads', 0), 
-            data.get('Contato Produtivo', 0), 
-            data.get('Visita Agendada', 0), 
-            data.get('Visita Realizada', 0), 
-            data.get('Matricula', 0)
+        # Totais simples do DataFrame retornado pelo Engine
+        total_leads = int(self.df['Leads'].sum())
+        total_agend = int(self.df['Visita Agendada'].sum())
+        total_visit = int(self.df['Visita Realizada'].sum())
+        total_matri = int(self.df['Matricula'].sum())
+
+        kpi_configs = [
+            ("Leads", total_leads, "#3498db", "assets/leads_logo.png"),
+            ("Agendamentos", total_agend, "#e67e22", "assets/agendamento_logo.png"),
+            ("Visitas", total_visit, "#9b59b6", "assets/visita_realizada_logo.png"),
+            ("Matrículas", total_matri, "#27ae60", "assets/matricula_logo.png"),
         ]
+
+        for i, (title, val, color, icon) in enumerate(kpi_configs):
+            card = KPICard(self.kpi_frame, title, str(val), color, icon)
+            card.grid(row=0, column=i, padx=10, sticky="ew")
+
+    def render_accordion_cards(self):
+        for w in self.scroll_cards.winfo_children(): w.destroy()
+
+        if self.df is None or self.df.empty:
+            ctk.CTkLabel(self.scroll_cards, text="Nenhum dado encontrado.", text_color="#7f8c8d").pack(pady=20)
+            return
+
+        # --- FILTRAGEM VISUAL ---
+        # O Engine traz tudo, a UI filtra o que mostra
+        filtered_df = self.df.copy()
         
-        bars = ax1.barh(etapas, valores, color=bar_color, height=0.6)
-        ax1.invert_yaxis()
+        selected_brand = self.marca_var.get()
+        selected_branch = self.filial_var.get()
+
+        if selected_brand != "Todas as Marcas":
+            # Usa a função do Engine para descobrir a marca de cada linha
+            filtered_df['temp_marca'] = filtered_df['unidade'].apply(self.engine.extract_marca)
+            filtered_df = filtered_df[filtered_df['temp_marca'] == selected_brand]
         
-        ax1.set_title("Volume Acumulado", color=text_color, fontsize=10, fontweight='bold', pad=10)
-        ax1.tick_params(axis='y', colors=text_color, labelsize=8)
-        ax1.tick_params(axis='x', colors=text_color, labelsize=7)
+        if selected_branch != "Todas as Filiais":
+            filtered_df = filtered_df[filtered_df['unidade'] == selected_branch]
+
+        if filtered_df.empty:
+            ctk.CTkLabel(self.scroll_cards, text="Sem dados para este filtro.", text_color="#7f8c8d").pack(pady=20)
+            return
+
+        # --- AGRUPAMENTO ---
+        grouped_data = {}
+        records = filtered_df.to_dict('records')
         
-        for spine in ax1.spines.values():
-            spine.set_visible(False)
+        for row in records:
+            brand = self.engine.extract_marca(row['unidade'])
             
-        ax1.bar_label(bars, fmt='{:,.0f}', padding=3, color=text_color, fontsize=7, fontweight='bold')
+            # Filtro opcional de "OUTROS"
+            if brand == "OUTROS": continue 
 
-        # Gráfico 2: Donut 
-        cohort_labels = ["Lead", "Agend", "Visita", "Negoc"]
-        cohort_vals = [
-            data.get('Inertes em Lead', 0), 
-            data.get('Aguardando Agendamento', 0), 
-            data.get('Aguardando Visita', 0), 
-            data.get('Em Negociação', 0)
-        ]
-        colors_pie = ['#bdc3c7', '#f1c40f', '#e67e22', '#3498db']
-        
-        if sum(cohort_vals) > 0:
-            wedges, texts, autotexts = ax2.pie(cohort_vals, labels=cohort_labels, autopct='%1.0f%%', 
-                                              startangle=90, colors=colors_pie, pctdistance=0.80,
-                                              textprops={'color': text_color, 'fontsize': 8})
+            if brand not in grouped_data: grouped_data[brand] = []
+            grouped_data[brand].append(row)
+
+        for brand in sorted(grouped_data.keys()):
+            rows = grouped_data[brand]
             
-            for autotext in autotexts:
-                autotext.set_color('white')
-                autotext.set_weight('bold')
-                autotext.set_fontsize(7)
-
-            centre_circle = plt.Circle((0,0), 0.65, fc='white')
-            fig.gca().add_artist(centre_circle)
-            ax2.set_title("Status Atual", color=text_color, fontsize=10, fontweight='bold', pad=10)
-        else:
-            ax2.text(0.5, 0.5, "Sem dados", ha='center', va='center', color=text_color)
-            ax2.axis('off')
-
-        plt.subplots_adjust(left=0.20, right=0.95, top=0.92, bottom=0.05, hspace=0.3)
-        
-        ax1.set_facecolor('none')
-        ax2.set_facecolor('none')
-
-        canvas = FigureCanvasTkAgg(fig, master=self.chart_container)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True)
-        canvas.get_tk_widget().configure(bg='#ffffff', highlightthickness=0)
-
-    def apply_filters(self, _=None):
-        if self.full_df is None: return
-        df = self.full_df.copy()
-        
-        marca = self.combo_marca.get()
-        unid = self.combo_unidade.get()
-
-        if marca != "Todas":
-            df = df[df['unidade'].apply(lambda x: self.engine.extract_marca(x)) == marca]
-        if unid != "Todas":
-            df = df[df['unidade'] == unid]
-
-        # Correção segura para soma de numéricos
-        numeric_cols = df.select_dtypes(include='number').columns
-        total_filtrado = df[numeric_cols].sum().to_dict()
-        
-        self.plot_funnels(total_filtrado)
-        self.render_cards(df)
-
-    def render_cards(self, df):
-        for widget in self.scroll_frame.winfo_children():
-            widget.destroy()
+            brand_totals = {
+                'Matricula': sum(r.get('Matricula', 0) for r in rows),
+                'Leads': sum(r.get('Leads', 0) for r in rows)
+            }
             
-        # Imports locais mantidos conforme original
-        from src.ui.components.info_card import InfoCard
-        from src.utils.report_handler import ReportHandler
-        
-        def export_single(data_row):
-             safe_name = str(data_row.get('unidade', 'relatorio')).replace(" ", "_")
-             ReportHandler.gerar_excel_individual(data_row, f"Relatorio_{safe_name}.xlsx")
+            card = BrandAccordionCard(
+                self.scroll_cards, 
+                brand_name=brand, 
+                brand_totals=brand_totals,
+                branch_list_data=rows,
+                on_export_brand=self.export_brand,
+                on_export_branch=self.export_branch
+            )
+            card.pack(fill="x", pady=6, padx=5)
 
-        for _, row in df.iterrows():
-            card_data = row.to_dict()
-            card = InfoCard(self.scroll_frame, data=card_data, on_excel_click=export_single)
-            card.pack(fill="x", padx=5, pady=5)
+    def export_branch(self, data):
+        safe_name = str(data.get('unidade', 'relatorio')).replace(" ", "_")
+        ReportHandler.gerar_excel_individual(data, f"Relatorio_{safe_name}.xlsx")
+        
+    def export_brand(self, brand_name, data_list):
+        df_brand = pd.DataFrame(data_list)
+        safe_name = brand_name.replace(" ", "_")
+        ReportHandler.gerar_excel_consolidado(df_brand, f"Consolidado_{safe_name}.xlsx")
