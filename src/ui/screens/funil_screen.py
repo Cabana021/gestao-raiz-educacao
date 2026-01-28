@@ -47,8 +47,6 @@ class MonitoringScreen(ctk.CTkFrame):
         self.scroll_frame = ctk.CTkScrollableFrame(self, label_text="Unidades Filtradas")
         self.scroll_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
 
-    # --- LÓGICA DE MULTITHREADING PARA EVITAR TRAVAMENTOS ---
-
     def start_consultation_thread(self):
         """Cria uma thread para buscar os dados sem travar a UI."""
         self.btn_consult.configure(state="disabled", text="Buscando...")
@@ -81,8 +79,6 @@ class MonitoringScreen(ctk.CTkFrame):
             self.apply_filters()
         
         self.btn_consult.configure(state="normal", text="Consultar DB")
-
-    # --- LÓGICA DE RENDERIZAÇÃO E GRÁFICOS ---
 
     def plot_funnels(self, data):
         """Gera os dois gráficos empilhados"""

@@ -8,7 +8,7 @@ class InfoCard(ctk.CTkFrame):
         self.data = data
         self.on_excel_click = on_excel_click # Callback function
         
-        # --- Definição de Cores por Marca (Identidade Visual) ---
+        # Definição de Cores por Marca 
         marca_lower = str(data.get('unidade', '')).lower()
         
         if "total" in marca_lower:
@@ -29,7 +29,7 @@ class InfoCard(ctk.CTkFrame):
         # Grid Interno
         self.grid_columnconfigure(1, weight=1)
         
-        # --- Cabeçalho: Nome da Unidade/Marca ---
+        # Cabeçalho: Nome da Unidade/Marca 
         header_text = f"{data.get('unidade', 'N/A')}"
         self.lbl_header = ctk.CTkLabel(
             self, text=header_text, text_color="white",
@@ -57,13 +57,13 @@ class InfoCard(ctk.CTkFrame):
         except:
             pass # Ignora erro de imagem
 
-        # --- Linhas de Dados ---
+        # Linhas de Dados 
         self._create_row("Leads:", data.get('Leads', 0), 1)
         self._create_row("Contatos Produtivos:", data.get('Contato Produtivo', 0), 2)
         self._create_row("Visitas Agendadas:", data.get('Visita Agendada', 0), 3)
         self._create_row("Visitas Realizadas:", data.get('Visita Realizada', 0), 4)
         
-        # Matrículas (Destaque)
+        # Matrículas 
         self._create_row("Matrículas:", data.get('Matricula', 0), 5, is_bold=True)
         
         # Padding inferior
