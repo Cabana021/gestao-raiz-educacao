@@ -1,94 +1,83 @@
 import pandas as pd
-import logging
-import os
-import urllib.parse
-from sqlalchemy import create_engine
-from dotenv import load_dotenv
-from src.engines.engine import EngineBase
+from src.engines.base import EngineBase
 
-# Carrega variáveis do .env
-load_dotenv()
+class PendenciaEngine(EngineBase):
+    """
+    Responsável por coletar dados de alunos (Pendentes e Matriculados).
+    Herda conexão e log da EngineBase.
+    """
 
-class PendenciaLoader(EngineBase): 
-    def __init__(self, arquivo_path=None, config_dict=None):
-        super().__init__() 
-        self.config = config_dict or {}
+    # SQL constants movidas para atributos de classe para limpeza
+    SQL_PENDENTES = """
+    SELECT
+        CAST(P.CODCOLIGADA AS VARCHAR) AS CODCOLIGADA,
+        CASE 
+            WHEN P.FILIAL LIKE '%BOM TEMPO%' OR P.NOMEGRUPO LIKE '%BOM TEMPO%' THEN 'GLOBAL TREE'
+            WHEN P.FILIAL LIKE '%INTEGRA EDUCACAO%' THEN 'APOGEU'
+            ELSE UPPER(LTRIM(RTRIM(P.NOMEGRUPO)))
+        END AS Marca,
+        CASE 
+            WHEN P.FILIAL LIKE '%BOM TEMPO%' THEN 'GLOBAL TREE - BOTAFOGO'
+            WHEN P.FILIAL LIKE '%INTEGRA EDUCACAO%' THEN 'APOGEU GLOBAL SCHOOL CIDADE ALTA'
+            ELSE UPPER(LTRIM(RTRIM(P.FILIAL)))
+        END AS Filial,
+        P.RA,
+        UPPER(P.ALUNO) AS Aluno,
+        P.CPFRESPFINANCEIRO AS CPF_Resp,
+        UPPER(P.RESPFINANCEIRO) AS Responsável,
+        UPPER(P.[TIPO MATRICULA]) AS Tipo_Matricula,
+        P.SERIE AS Série,
+        P.TURNO AS Turno,
+        UPPER(P.STATUS) AS STATUS,
+        P.[DATA CADASTRO] AS Data_Cadastro
+    FROM Z_PAINELMATRICULA P
+    WHERE 
+        P.CODPERLET = '2026'
+        AND P.ALUNO NOT LIKE '%TESTE%'
+        AND (
+            P.STATUS LIKE '%PENDENTE%' OR 
+            P.STATUS LIKE '%AGUARDANDO%' OR 
+            P.STATUS LIKE '%ANALISE%' OR 
+            P.STATUS LIKE '%REQ%' OR
+            P.STATUS LIKE '%RESERVA%' OR
+            P.STATUS LIKE '%PRÉ%'
+        )
+        AND P.STATUS NOT IN ('MATRICULADO', 'ATIVO', 'CURSANDO', 'CONFIRMADO', 'REMATRÍCULA')
+        AND NOT (P.NOMEGRUPO LIKE '%UNIFICADO%' AND P.FILIAL LIKE '%RAMIRO%')
+        AND NOT (P.NOMEGRUPO LIKE '%QI%' AND P.FILIAL LIKE '%BOTAFOGO%')
+        AND NOT (P.NOMEGRUPO LIKE '%AO CUBO%' AND (P.FILIAL LIKE '%RECREIO%' OR P.FILIAL LIKE '%TIJUCA%'))
+        AND NOT (P.NOMEGRUPO LIKE '%APOGEU%' AND (P.FILIAL LIKE '%DIVINÓPOLIS%' OR P.FILIAL LIKE '%UBÁ%'))
+    """
 
-    def get_connection(self):
-        """Cria conexão com banco SQL Server via SQLAlchemy + PyODBC."""
-        try:
-            server = os.getenv("SERVER")
-            database = os.getenv("DATABASE")
-            username = os.getenv("USER")
-            password = os.getenv("SENHA")
-            
-            # Fallback de driver se não estiver no env
-            driver = os.getenv("DB_DRIVER", "SQL Server")
+    SQL_MATRICULADOS = """
+    SELECT DISTINCT RA
+    FROM Tabela_Matrizcurricular
+    WHERE [Matricula Validade] = 'S'
+    """
 
-            if not all([server, database, username, password]):
-                logging.error("Variáveis de conexão SQL incompletas no .env")
-                return None
+    def __init__(self):
+        super().__init__() # Inicializa o EngineBase (Logger e DB)
 
-            connection_string = f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};UID={username};PWD={password}"
-            params = urllib.parse.quote_plus(connection_string)
-            
-            # fast_executemany=True otimiza, mas para leitura simples não é crítico.
-            db_url = f"mssql+pyodbc:///?odbc_connect={params}"
-
-            return create_engine(db_url)
-
-        except Exception as e:
-            logging.error(f"Erro ao configurar string de conexão: {e}")
-            return None
-
-    def carregar_dados(self):
-        """Executa a query na Z_PAINELMATRICULA."""
-        logging.info("Loader: Iniciando conexão SQL...")
+    def get_pendentes(self) -> pd.DataFrame:
+        """Busca alunos pendentes e aplica tipagem básica."""
+        self.logger.info("Iniciando extração de pendentes...")
         
-        engine_sql = self.get_connection()
-        if not engine_sql:
-            return None
+        df = self.executar_query(self.SQL_PENDENTES)
+        
+        if not df.empty:
+            # Tratamento de tipos seguro
+            df['RA'] = df['RA'].astype(str).str.strip()
+            df['Data_Cadastro'] = pd.to_datetime(df['Data_Cadastro'], dayfirst=True, errors='coerce')
+        
+        return df
 
-        query = """
-        SELECT 
-            NOMEGRUPO as Marca,
-            FILIAL as Filial,
-            RA,
-            ALUNO as Aluno,
-            RESPFINANCEIRO as Responsável,
-            CPFRESPFINANCEIRO as CPF_Resp,
-            [TIPO MATRICULA] as Tipo_Matricula,
-            STATUS,
-            SERIE as Série,
-            TURNO as Turno,
-            CURSO as Curso,
-            GRADE as Grade,
-            [DATA CADASTRO] as Data_Cadastro,
-            [DATA MATRÍCULA] as Data_Matricula
-        FROM Z_PAINELMATRICULA
-        WHERE CODPERLET = '2026'
-        """
-
-        try:
-            with engine_sql.connect() as conn:
-                df = pd.read_sql(query, conn)
-
-            if df.empty:
-                logging.warning("Loader: Query retornou 0 registros para 2026.")
-                return None
-
-            # Normalização preliminar das colunas
-            df.columns = df.columns.astype(str).str.strip()
+    def get_matriculados_ra(self) -> set:
+        """Retorna um SET de RAs matriculados para verificação rápida (O(1))."""
+        self.logger.info("Buscando RAs matriculados...")
+        
+        df = self.executar_query(self.SQL_MATRICULADOS)
+        
+        if not df.empty and 'RA' in df.columns:
+            return set(df['RA'].astype(str).str.strip().unique())
             
-            # Preenchimento de nulos para evitar erros nas operações de string
-            cols_str = ['Marca', 'Filial', 'RA', 'Aluno', 'STATUS', 'Turno']
-            for col in cols_str:
-                if col in df.columns:
-                    df[col] = df[col].fillna('').astype(str)
-
-            logging.info(f"Loader: {len(df)} linhas carregadas do SQL.")
-            return df
-
-        except Exception as e:
-            logging.error(f"Loader: Erro crítico na execução SQL: {e}", exc_info=True)
-            return None
+        return set()

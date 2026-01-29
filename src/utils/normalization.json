@@ -2,7 +2,7 @@
   "AMERICANO": {
     "unidades": [
       {
-        "nome_oficial": "COLÉGIO AMERICANO",
+        "nome_oficial": "AMERICANO",
         "status": "ativo",
         "aliases": ["COLÉGIO AMERICANO", "AMERICANO", "AMERICANO MATRIZ"]
       }
@@ -61,16 +61,10 @@
         "aliases": ["APOGEU PARÁ DE MINAS", "APOGEU PARA DE MINAS", "APOGEU GLOBAL SCHOOL PARA DE MINAS", "APOGEU GLOBAL SCHOOL - PARA DE MINAS"]
       },
       {
-        "nome_oficial": "APOGEU - ESPACO MAGICO",
+        "nome_oficial": "INTEGRA EDUCACIONAL S/A",
         "status": "inativo",
-        "sucessora": "APOGEU GLOBAL SCHOOL FERREIRA GUIMARÃES",
-        "aliases": ["APOGEU - ESPACO MAGICO", "APOGEU ESPACO MAGICO"]
-      },
-      {
-        "nome_oficial": "APOGEU - JARDIM NORTE",
-        "status": "inativo",
-        "sucessora": "APOGEU GLOBAL SCHOOL FERREIRA GUIMARÃES",
-        "aliases": ["APOGEU JARDIM NORTE", "APOGEU - JARDIM NORTE"]
+        "sucessora": "APOGEU GLOBAL SCHOOL CIDADE ALTA",
+        "aliases": ["INTEGRA EDUCACIONAL S/A", "INTEGRA"]
       }
     ]
   },
@@ -95,16 +89,6 @@
         "nome_oficial": "COLÉGIO E CURSO AO CUBO TIJUCA",
         "status": "inativo",
         "aliases": ["COLÉGIO E CURSO AO CUBO TIJUCA"]
-      }
-    ]
-  },
-  "BOM TEMPO": {
-    "unidades": [
-      {
-        "nome_oficial": "BOM TEMPO CRECHE E EDUCACAO INFANTIL LTDA",
-        "status": "inativo",
-        "sucessora": "CRECHE ESCOLA GLOBAL TREE - BOTAFOGO",
-        "aliases": ["BOM TEMPO CRECHE E EDUCACAO INFANTIL LTDA", "BOM TEMPO CRECHE-ESCOLA - BOTAFOGO"]
       }
     ]
   },
@@ -134,16 +118,12 @@
         "nome_oficial": "CRECHE ESCOLA GLOBAL TREE - BOTAFOGO",
         "status": "ativo",
         "aliases": [ "CRECHE ESCOLA GLOBAL TREE BOTAFOGO","CRECHE ESCOLA GLOBAL TREE - BOTAFOGO", "GLOBAL TREE BOTAFOGO", "GLOBAL TREE - BOTAFOGO"]
-      }
-    ]
-  },
-  "INTEGRA": {
-    "unidades": [
+      },
       {
-        "nome_oficial": "INTEGRA EDUCACIONAL S/A",
+        "nome_oficial": "BOM TEMPO CRECHE E EDUCACAO INFANTIL LTDA",
         "status": "inativo",
-        "sucessora": "APOGEU GLOBAL SCHOOL CIDADE ALTA",
-        "aliases": ["INTEGRA EDUCACIONAL S/A", "INTEGRA"]
+        "sucessora": "CRECHE ESCOLA GLOBAL TREE - BOTAFOGO",
+        "aliases": ["BOM TEMPO CRECHE E EDUCACAO INFANTIL LTDA", "BOM TEMPO CRECHE-ESCOLA - BOTAFOGO"]
       }
     ]
   },
